@@ -56,7 +56,7 @@ export default function Navbar() {
         {/* Logo */}
         <Link href="/" className="flex-shrink-0 flex items-center gap-2">
           <Image
-            src="/UMS Logo/UMS_logo_hires.png"
+            src="/UMS Logo/UMS_logo_upscaled_faithful.png"
             alt="Unique Management Solutions"
             width={120}
             height={40}

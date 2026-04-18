@@ -1,44 +1,48 @@
 'use client'
 
 import { m, type Variants } from 'framer-motion'
-import { Diamond } from 'lucide-react'
+import {
+  Target, Megaphone, BarChart2,
+  FileText, TrendingUp, Rocket,
+  FolderSearch, Award, Navigation,
+} from 'lucide-react'
 
 const expertiseAreas = [
   {
+    icon: Target,
     name: 'Strategy Development & Planning',
-    descriptor: 'Translating vision into clear, executable strategic direction that your team can own and deliver.',
   },
   {
+    icon: Megaphone,
     name: 'MARCOM Strategies',
-    descriptor: 'Integrated marketing and communications strategies built around brand clarity and measurable impact.',
   },
   {
+    icon: BarChart2,
     name: 'Benchmark Studies',
-    descriptor: 'Data-driven comparisons that reveal exactly where you stand — and where the opportunity lives.',
   },
   {
+    icon: FileText,
     name: 'Proposal Development',
-    descriptor: 'Structured, compelling proposals that communicate your value and consistently raise the winning rate.',
   },
   {
+    icon: TrendingUp,
     name: 'Financial Analysis & Forecasting',
-    descriptor: 'Clear financial modelling and scenario planning that supports confident, informed decisions.',
   },
   {
+    icon: Rocket,
     name: 'Start-up Kits',
-    descriptor: 'Foundational tools for new ventures — from strategic positioning to operational launch readiness.',
   },
   {
+    icon: FolderSearch,
     name: 'Initiative Detailing',
-    descriptor: 'Scoping and defining each initiative with clarity: objectives, owners, timelines, and success metrics.',
   },
   {
+    icon: Award,
     name: 'Sponsorship Packages',
-    descriptor: 'Compelling sponsorship frameworks designed to attract the right partners and maximize return.',
   },
   {
+    icon: Navigation,
     name: 'Customer Journey & Experience',
-    descriptor: 'Mapping every touchpoint to design seamless experiences that build loyalty and drive advocacy.',
   },
 ]
 
@@ -48,10 +52,10 @@ const sectionVariants: Variants = {
 }
 const gridVariants: Variants = {
   hidden:  {},
-  visible: { transition: { staggerChildren: 0.08 } },
+  visible: { transition: { staggerChildren: 0.07 } },
 }
-const cardVariants: Variants = {
-  hidden:  { opacity: 0, y: 24 },
+const itemVariants: Variants = {
+  hidden:  { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 }
 
@@ -59,7 +63,7 @@ export default function OurExpertiseSection() {
   return (
     <section
       id="expertise"
-      className="bg-ums-bg py-28 px-6 lg:px-8"
+      className="bg-[#1C1B19] py-28 px-6 lg:px-8"
       aria-labelledby="expertise-heading"
     >
       <div className="mx-auto max-w-6xl">
@@ -70,7 +74,7 @@ export default function OurExpertiseSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
-          className="mb-16 text-center"
+          className="mb-6 text-center"
         >
           <div className="mx-auto mb-6 h-px w-16 bg-ums-gold" />
           <h2
@@ -79,78 +83,57 @@ export default function OurExpertiseSection() {
           >
             Our Expertise
           </h2>
-          <p className="mt-4 text-sm text-ums-muted uppercase tracking-[0.25em]">
-            What we do best
-          </p>
         </m.div>
 
-        {/* Diamond banner */}
+        {/* Large stat header */}
         <m.div
           variants={sectionVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
-          className="mb-12 flex items-center gap-4 rounded-xl border border-ums-border bg-[#201F1D] px-8 py-5"
+          className="mb-16 text-center"
         >
-          <Diamond
-            size={22}
-            className="shrink-0 text-ums-gold"
-            aria-hidden="true"
-          />
-          <div className="flex flex-col sm:flex-row sm:items-center sm:gap-4">
-            <span className="text-base font-semibold text-ums-gold whitespace-nowrap">
-              7+ Years of Collective Consulting Experience
-            </span>
-            <span className="hidden sm:block h-4 w-px bg-ums-border" />
-            <span className="text-sm text-ums-muted leading-snug">
-              Delivered across strategy, communications, financial planning, and operational excellence.
-            </span>
-          </div>
+          <p className="text-2xl font-bold text-foreground md:text-3xl">
+            7+ Years of Collective Consulting Experience
+          </p>
+          <p className="mt-3 text-sm text-ums-muted uppercase tracking-[0.25em]">
+            Delivered across strategy, communications, financial planning, and operational excellence
+          </p>
         </m.div>
 
-        {/* 3×3 card grid */}
+        {/* 3-column open grid with vertical dividers */}
         <m.div
           variants={gridVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-40px' }}
-          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+          className="grid lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-[#5D523C]"
         >
-          {expertiseAreas.map((area) => (
-            <ExpertiseCard key={area.name} area={area} />
+          {[0, 1, 2].map(col => (
+            <div key={col} className="flex flex-col divide-y divide-[#5D523C]">
+              {expertiseAreas.slice(col * 3, col * 3 + 3).map(area => {
+                const Icon = area.icon
+                return (
+                  <m.div
+                    key={area.name}
+                    variants={itemVariants}
+                    className="group flex items-center gap-5 px-8 py-7 cursor-default"
+                  >
+                    <Icon
+                      size={28}
+                      className="shrink-0 text-ums-muted/60 transition-all duration-300 group-hover:text-ums-gold group-hover:drop-shadow-[0_0_10px_rgba(171,156,125,0.5)]"
+                      aria-hidden="true"
+                    />
+                    <span className="text-sm font-semibold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold">
+                      {area.name}
+                    </span>
+                  </m.div>
+                )
+              })}
+            </div>
           ))}
         </m.div>
       </div>
     </section>
-  )
-}
-
-function ExpertiseCard({ area }: { area: { name: string; descriptor: string } }) {
-  return (
-    <m.div
-      variants={cardVariants}
-      whileHover={{ scale: 1.01 }}
-      transition={{ duration: 0.2 }}
-      className="group relative flex flex-col gap-3 rounded-xl border border-ums-border bg-[#201F1D] p-6 transition-all duration-300 hover:border-ums-gold/60"
-      style={{ boxShadow: '0 0 0 0 transparent' }}
-    >
-      {/* Hover gold glow */}
-      <div
-        className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-        style={{
-          boxShadow: '0 0 0 1px #AB9C7D, 0 0 20px 0 rgba(171,156,125,0.12)',
-        }}
-      />
-
-      {/* Gold dot accent */}
-      <div className="h-1.5 w-1.5 rounded-full bg-ums-gold opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
-
-      <h3 className="text-sm font-semibold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold">
-        {area.name}
-      </h3>
-      <p className="text-xs leading-relaxed text-ums-muted">
-        {area.descriptor}
-      </p>
-    </m.div>
   )
 }

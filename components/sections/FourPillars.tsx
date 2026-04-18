@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { m, type Variants } from 'framer-motion'
 import { Briefcase, Lightbulb, Zap, LayoutTemplate } from 'lucide-react'
 import type { ElementType } from 'react'
+import { cn } from '@/lib/utils'
 
 const pillars = [
   {
@@ -11,40 +12,189 @@ const pillars = [
     name: 'Business Solutions & Management Consulting',
     description:
       'From strategy design and benchmarking studies to foundational startup kits, we provide end-to-end management consulting services that translate your ambitions and challenges into a clear, structured blueprint for growth — alongside detailed proposals and bid submissions that accelerate your market penetration and winning rate.',
+    position: 'tl' as const,
   },
   {
     icon: Lightbulb,
     name: 'Innovative Solutions',
     description:
       'Bridging traditional consulting with the power of AI, we combine structured thinking with the latest innovations to design digital tools and solutions — optimising your operations and building the competitive advantages that last.',
+    position: 'tr' as const,
   },
   {
     icon: Zap,
     name: 'Rapid 360 Presentation Turnarounds',
     description:
       'Operating as an agile SWAT team, we take your presentation and deliver a full 360 turnaround — fast, precise, and uncompromising. Powered by design principles, structured consulting thinking, and visual storytelling, we turn complexity into clarity every time.',
+    position: 'bl' as const,
   },
   {
     icon: LayoutTemplate,
     name: 'Tools & Templates Market',
     description:
       'Your on-demand library of consultant-grade slides and templates, ready to download and ready to use. From strategy frameworks and project management decks to startup kits and personal productivity tools — browse by category, buy what you need, and own it for life. One time purchase. Lifetime use.',
+    position: 'br' as const,
   },
 ]
 
-const containerVariants: Variants = {
-  hidden:  {},
-  visible: { transition: { staggerChildren: 0.15 } },
+/* ── Animated wave canvas inside the diamond ─────────────── */
+const CANVAS_PX  = 340  // canvas render size
+const SQUARE_PX  = Math.round(CANVAS_PX / Math.SQRT2)  // rotated container size ≈ 240
+const OFFSET_PX  = Math.round((SQUARE_PX - CANVAS_PX) / 2)  // ≈ -50
+
+function DiamondWave() {
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const ctx = canvas.getContext('2d')
+    if (!ctx) return
+
+    canvas.width  = CANVAS_PX
+    canvas.height = CANVAS_PX
+
+    const waves = [
+      { amp: 22, freq: 0.013, speed: 0.0022, phase: 0,              alpha: 0.50 },
+      { amp: 15, freq: 0.02,  speed: 0.003,  phase: Math.PI,        alpha: 0.33 },
+      { amp: 10, freq: 0.009, speed: 0.0018, phase: Math.PI / 2,    alpha: 0.22 },
+      { amp: 7,  freq: 0.028, speed: 0.0035, phase: Math.PI * 1.5,  alpha: 0.15 },
+    ]
+
+    let t = 0
+    let animId: number
+
+    const draw = () => {
+      t++
+      ctx.fillStyle = '#1A1918'
+      ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX)
+
+      waves.forEach(w => {
+        ctx.beginPath()
+        for (let x = 0; x <= CANVAS_PX; x += 2) {
+          const y = CANVAS_PX / 2
+            + Math.sin(x * w.freq + t * w.speed + w.phase) * w.amp
+            + Math.sin(x * w.freq * 0.5 + t * w.speed * 0.7) * (w.amp * 0.4)
+          if (x === 0) ctx.moveTo(x, y)
+          else ctx.lineTo(x, y)
+        }
+        ctx.strokeStyle = `rgba(171, 156, 125, ${w.alpha})`
+        ctx.lineWidth   = 1.5
+        ctx.shadowColor = 'rgba(171, 156, 125, 0.25)'
+        ctx.shadowBlur  = 8
+        ctx.stroke()
+      })
+
+      animId = requestAnimationFrame(draw)
+    }
+
+    animId = requestAnimationFrame(draw)
+    return () => cancelAnimationFrame(animId)
+  }, [])
+
+  return (
+    /* Outer bounding-box div — same size as the diamond's visible diagonals */
+    <div
+      className="relative shrink-0"
+      style={{ width: CANVAS_PX, height: CANVAS_PX }}
+    >
+      {/* Rotated square → appears as diamond */}
+      <div
+        style={{
+          position: 'absolute',
+          top:    '50%',
+          left:   '50%',
+          width:  SQUARE_PX,
+          height: SQUARE_PX,
+          marginTop:  -SQUARE_PX / 2,
+          marginLeft: -SQUARE_PX / 2,
+          transform: 'rotate(45deg)',
+          border: '1px solid rgba(171,156,125,0.55)',
+          overflow: 'hidden',
+          boxShadow: '0 0 40px 0 rgba(171,156,125,0.07)',
+        }}
+      >
+        <canvas
+          ref={canvasRef}
+          style={{
+            position: 'absolute',
+            width:  CANVAS_PX,
+            height: CANVAS_PX,
+            top:  OFFSET_PX,
+            left: OFFSET_PX,
+            transform: 'rotate(-45deg)',
+          }}
+          aria-hidden="true"
+        />
+      </div>
+    </div>
+  )
 }
-const cardVariants: Variants = {
-  hidden:  { opacity: 0, y: 32 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
-}
+
+/* ── Section heading variants ────────────────────────────── */
 const headingVariants: Variants = {
   hidden:  { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
 }
+const contentVariants: Variants = {
+  hidden:  { opacity: 0 },
+  visible: { opacity: 1, transition: { duration: 0.8, ease: 'easeOut' } },
+}
 
+/* ── Pillar text block ───────────────────────────────────── */
+function PillarText({
+  pillar,
+  align,
+}: {
+  pillar: (typeof pillars)[0]
+  align: 'left' | 'right'
+}) {
+  return (
+    <div className={cn('flex flex-col gap-2', align === 'right' ? 'text-right items-end' : 'text-left items-start')}>
+      <h3 className="text-base font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold max-w-[260px]">
+        {pillar.name}
+      </h3>
+      <p className="text-xs leading-relaxed text-ums-muted max-w-[260px]">
+        {pillar.description}
+      </p>
+    </div>
+  )
+}
+
+/* ── Pillar icon block ───────────────────────────────────── */
+function PillarIcon({ icon: Icon }: { icon: ElementType }) {
+  return (
+    <div className="shrink-0 flex h-16 w-16 items-center justify-center transition-all duration-300 group-hover:drop-shadow-[0_0_14px_rgba(171,156,125,0.45)]">
+      <Icon
+        size={40}
+        className="text-ums-muted/70 transition-colors duration-300 group-hover:text-ums-gold"
+        aria-hidden="true"
+      />
+    </div>
+  )
+}
+
+/* ── Mobile pillar card (no diamond) ────────────────────── */
+function MobilePillarCard({ pillar }: { pillar: (typeof pillars)[0] }) {
+  const Icon = pillar.icon
+  return (
+    <div className="group flex flex-col gap-3 cursor-default py-4">
+      <Icon
+        size={32}
+        className="text-ums-muted/70 transition-colors duration-300 group-hover:text-ums-gold"
+        aria-hidden="true"
+      />
+      <h3 className="text-sm font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold">
+        {pillar.name}
+      </h3>
+      <p className="text-xs leading-relaxed text-ums-muted">
+        {pillar.description}
+      </p>
+    </div>
+  )
+}
+
+/* ── Main section ────────────────────────────────────────── */
 export default function FourPillarsSection() {
   return (
     <section
@@ -74,82 +224,61 @@ export default function FourPillarsSection() {
           </p>
         </m.div>
 
-        {/* 2×2 card grid */}
+        {/* ── Mobile layout (< lg) — simple 2×2 grid ── */}
+        <div className="grid grid-cols-2 gap-x-8 gap-y-6 lg:hidden">
+          {pillars.map(p => (
+            <MobilePillarCard key={p.name} pillar={p} />
+          ))}
+        </div>
+
+        {/* ── Desktop layout (≥ lg) — diamond composition ── */}
         <m.div
-          variants={containerVariants}
+          variants={contentVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-60px' }}
-          className="grid gap-6 sm:grid-cols-2"
+          className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center gap-8 xl:gap-12"
         >
-          {pillars.map((pillar) => (
-            <PillarCard key={pillar.name} pillar={pillar} />
-          ))}
+          {/* Left column — TL (top) and BL (bottom) */}
+          <div className="flex flex-col justify-between self-stretch gap-12">
+            {/* TL: Business Solutions */}
+            <div className="group flex flex-1 items-end justify-end gap-6 cursor-default">
+              <PillarText pillar={pillars[0]} align="right" />
+              <PillarIcon icon={pillars[0].icon} />
+            </div>
+
+            {/* Divider */}
+            <div className="mx-auto h-px w-full max-w-[80%] bg-ums-border/40" />
+
+            {/* BL: Rapid 360 */}
+            <div className="group flex flex-1 items-start justify-end gap-6 cursor-default">
+              <PillarText pillar={pillars[2]} align="right" />
+              <PillarIcon icon={pillars[2].icon} />
+            </div>
+          </div>
+
+          {/* Center — animated diamond */}
+          <DiamondWave />
+
+          {/* Right column — TR (top) and BR (bottom) */}
+          <div className="flex flex-col justify-between self-stretch gap-12">
+            {/* TR: Innovative Solutions */}
+            <div className="group flex flex-1 items-end justify-start gap-6 cursor-default">
+              <PillarIcon icon={pillars[1].icon} />
+              <PillarText pillar={pillars[1]} align="left" />
+            </div>
+
+            {/* Divider */}
+            <div className="mx-auto h-px w-full max-w-[80%] bg-ums-border/40" />
+
+            {/* BR: Tools & Templates */}
+            <div className="group flex flex-1 items-start justify-start gap-6 cursor-default">
+              <PillarIcon icon={pillars[3].icon} />
+              <PillarText pillar={pillars[3]} align="left" />
+            </div>
+          </div>
         </m.div>
       </div>
     </section>
-  )
-}
-
-function PillarCard({
-  pillar,
-}: {
-  pillar: { icon: ElementType; name: string; description: string }
-}) {
-  const [hovered, setHovered] = useState(false)
-  const Icon = pillar.icon
-
-  return (
-    <m.div
-      variants={cardVariants}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        boxShadow: hovered
-          ? '0 0 0 1px #AB9C7D, 0 0 24px 0 rgba(171,156,125,0.18)'
-          : '0 0 0 1px #5D523C',
-        transition: 'box-shadow 0.3s ease',
-      }}
-      className="relative flex flex-col gap-5 rounded-xl bg-[#201F1D] p-8 cursor-default"
-    >
-      {/* Icon container */}
-      <div
-        className="flex h-12 w-12 items-center justify-center rounded-lg border transition-colors duration-300"
-        style={{
-          borderColor: hovered ? '#AB9C7D' : '#5D523C',
-          backgroundColor: hovered ? 'rgba(171,156,125,0.08)' : 'transparent',
-        }}
-      >
-        <Icon
-          size={22}
-          style={{ color: hovered ? '#AB9C7D' : '#888073' }}
-          className="transition-colors duration-300"
-          aria-hidden="true"
-        />
-      </div>
-
-      {/* Pillar name */}
-      <h3
-        className="text-lg font-semibold leading-snug transition-colors duration-300"
-        style={{ color: hovered ? '#AB9C7D' : '#F5F0E8' }}
-      >
-        {pillar.name}
-      </h3>
-
-      {/* Description */}
-      <p className="text-sm leading-relaxed text-ums-muted">
-        {pillar.description}
-      </p>
-
-      {/* Subtle corner accent on hover */}
-      <div
-        className="pointer-events-none absolute bottom-0 right-0 h-16 w-16 rounded-br-xl transition-opacity duration-300"
-        style={{
-          opacity: hovered ? 1 : 0,
-          background:
-            'radial-gradient(circle at bottom right, rgba(171,156,125,0.12) 0%, transparent 70%)',
-        }}
-      />
-    </m.div>
   )
 }

@@ -2,7 +2,6 @@
 
 import { m, type Variants } from 'framer-motion'
 import { Download, Palette, Layers } from 'lucide-react'
-import Link from 'next/link'
 
 const MAILTO = 'mailto:info@ums-solutions.com'
 
@@ -13,8 +12,6 @@ const deliveryCards = [
     title: 'Self-Serve',
     description:
       'Browse the store, buy what you need, and download immediately. Consultant-grade frameworks ready to use from the moment of purchase.',
-    cta: { label: 'Explore Our Store', href: '/store', external: false },
-    highlight: true,
   },
   {
     icon: Palette,
@@ -22,8 +19,6 @@ const deliveryCards = [
     title: 'Branded Edition',
     description:
       'Your framework, your brand. We take any template from our library and adapt it to your organisation\'s visual identity, tone, and structure.',
-    cta: { label: 'Request a Quotation', href: MAILTO, external: true },
-    highlight: false,
   },
   {
     icon: Layers,
@@ -31,8 +26,6 @@ const deliveryCards = [
     title: 'Strategic Build',
     description:
       'End-to-end consulting delivery. We work alongside you to build the strategy, the frameworks, and the outputs your organisation needs from the ground up.',
-    cta: { label: 'Request a Quotation', href: MAILTO, external: true },
-    highlight: false,
   },
 ]
 
@@ -121,64 +114,39 @@ function DeliveryCard({
     badge: string
     title: string
     description: string
-    cta: { label: string; href: string; external: boolean }
-    highlight: boolean
   }
 }) {
   const Icon = card.icon
 
-  const cardStyle = card.highlight
-    ? {
-        borderColor: '#AB9C7D',
-        boxShadow: '0 0 0 1px #AB9C7D, 0 0 32px 0 rgba(171,156,125,0.10)',
-      }
-    : {
-        borderColor: '#5D523C',
-        boxShadow: 'none',
-      }
-
   return (
     <m.div
       variants={cardVariants}
-      style={cardStyle}
-      className="relative flex flex-col gap-6 rounded-xl border bg-[#201F1D] p-8"
+      className="group relative flex flex-col gap-6 rounded-xl border border-[#5D523C] bg-[#201F1D] p-8 transition-all duration-300 hover:border-ums-gold/60"
+      style={{ boxShadow: '0 0 0 0 transparent' }}
     >
-      {/* Primary path accent line */}
-      {card.highlight && (
-        <div className="absolute inset-x-0 top-0 h-px rounded-t-xl bg-gradient-to-r from-transparent via-ums-gold to-transparent" />
-      )}
+      {/* Hover gold glow overlay */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ boxShadow: '0 0 0 1px rgba(171,156,125,0.5), 0 0 28px 0 rgba(171,156,125,0.08)' }}
+      />
 
       {/* Badge */}
       <span
-        className="inline-flex w-fit items-center rounded-full px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em]"
-        style={{
-          border: '1px solid',
-          borderColor: card.highlight ? '#AB9C7D' : '#5D523C',
-          color: card.highlight ? '#AB9C7D' : '#888073',
-        }}
+        className="inline-flex w-fit items-center rounded-full border border-[#5D523C] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-ums-muted"
       >
         {card.badge}
       </span>
 
       {/* Icon + title */}
       <div className="flex items-start gap-4">
-        <div
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border"
-          style={{
-            borderColor: card.highlight ? '#AB9C7D' : '#5D523C',
-            backgroundColor: card.highlight ? 'rgba(171,156,125,0.08)' : 'transparent',
-          }}
-        >
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border border-[#5D523C] transition-all duration-300 group-hover:border-ums-gold/40">
           <Icon
             size={20}
-            style={{ color: card.highlight ? '#AB9C7D' : '#888073' }}
+            className="text-ums-muted transition-colors duration-300 group-hover:text-ums-gold"
             aria-hidden="true"
           />
         </div>
-        <h3
-          className="text-xl font-bold leading-snug"
-          style={{ color: card.highlight ? '#AB9C7D' : '#F5F0E8' }}
-        >
+        <h3 className="text-xl font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold">
           {card.title}
         </h3>
       </div>
@@ -187,24 +155,6 @@ function DeliveryCard({
       <p className="grow text-sm leading-relaxed text-ums-muted">
         {card.description}
       </p>
-
-      {/* CTA */}
-      {card.cta.external ? (
-        <a
-          href={card.cta.href}
-          className="inline-flex w-full items-center justify-center rounded-md border border-ums-border px-5 py-3 text-sm font-semibold text-foreground transition-colors hover:border-ums-gold hover:text-ums-gold"
-        >
-          {card.cta.label}
-        </a>
-      ) : (
-        <Link
-          href={card.cta.href}
-          className="inline-flex w-full items-center justify-center rounded-md px-5 py-3 text-sm font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90"
-          style={{ backgroundColor: '#AB9C7D', color: '#1A1918' }}
-        >
-          {card.cta.label}
-        </Link>
-      )}
     </m.div>
   )
 }
