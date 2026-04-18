@@ -52,6 +52,11 @@ body {
 }
 
 /* ── Scrollbar ─────────────────────────────────────────── */
+/* ── Store — stars keyframes ────────────────────────── */
+@keyframes stars-scroll-1 { to { transform: translateY(-2000px); } }
+@keyframes stars-scroll-2 { to { transform: translateY(-2000px); } }
+@keyframes stars-scroll-3 { to { transform: translateY(-2000px); } }
+
 ::-webkit-scrollbar       { width: 6px; }
 ::-webkit-scrollbar-track { background: #1A1918; }
 ::-webkit-scrollbar-thumb { background: #5D523C; border-radius: 3px; }
