@@ -1,15 +1,19 @@
-import HeroSection       from '@/components/sections/Hero'
-import FourPillarsSection from '@/components/sections/FourPillars'
+import HeroSection         from '@/components/sections/Hero'
+import FourPillarsSection  from '@/components/sections/FourPillars'
+import OurExpertiseSection from '@/components/sections/OurExpertise'
+import OurDeliveryModel    from '@/components/sections/OurDeliveryModel'
+import StoreTeaserSection  from '@/components/sections/StoreTeaserSection'
+import ConnectWithUs       from '@/components/sections/ConnectWithUs'
 
 export default function HomePage() {
   return (
     <div className="bg-ums-bg">
       <HeroSection />
       <FourPillarsSection />
-      <section id="expertise" className="min-h-screen" />
-      <section id="services"  className="min-h-screen" />
-      <section id="store"     className="min-h-screen" />
-      <section id="contact"   className="min-h-screen" />
+      <OurExpertiseSection />
+      <OurDeliveryModel />
+      <StoreTeaserSection />
+      <ConnectWithUs />
     </div>
   )
 }

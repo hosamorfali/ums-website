@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, type Variants } from 'framer-motion'
+import { m, type Variants } from 'framer-motion'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import Link from 'next/link'
@@ -23,7 +23,7 @@ const heroStats = [
   { label: 'Turnaround',           value: '48h'  },
 ]
 
-/* ── Framer Motion variants (unchanged from base prompt) ─── */
+/* ── Framer Motion variants ──────────────────────────────── */
 const containerVariants: Variants = {
   hidden:  { opacity: 0, y: 24 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.8, staggerChildren: 0.12 } },
@@ -58,7 +58,6 @@ export default function HeroSection() {
     let animationId: number
     let time = 0
 
-    /* Wave palette — UMS gold #AB9C7D, animation logic unchanged */
     const wavePalette: WaveConfig[] = [
       { offset: 0,             amplitude: 70, frequency: 0.003,  color: `rgba(${GOLD}, 0.8)`,  opacity: 0.45 },
       { offset: Math.PI / 2,   amplitude: 90, frequency: 0.0026, color: `rgba(${GOLD}, 0.7)`,  opacity: 0.35 },
@@ -106,7 +105,7 @@ export default function HeroSection() {
           Math.sin(x * wave.frequency + time * 0.002 + wave.offset) * wave.amplitude +
           Math.sin(x * wave.frequency * 0.4 + time * 0.003) * (wave.amplitude * 0.45) +
           mouseEffect
-        x === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+        if (x === 0) { ctx.moveTo(x, y) } else { ctx.lineTo(x, y) }
       }
       ctx.lineWidth   = 2.5
       ctx.strokeStyle = wave.color
@@ -122,7 +121,6 @@ export default function HeroSection() {
       mouseRef.current.x += (targetMouseRef.current.x - mouseRef.current.x) * smoothing
       mouseRef.current.y += (targetMouseRef.current.y - mouseRef.current.y) * smoothing
 
-      /* Background — always UMS #1A1918 */
       const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height)
       gradient.addColorStop(0, '#1A1918')
       gradient.addColorStop(1, '#1E1D1B')
@@ -167,47 +165,47 @@ export default function HeroSection() {
 
       {/* Content layer */}
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col items-center px-6 py-24 text-center md:px-8 lg:px-12">
-        <motion.div
+        <m.div
           variants={containerVariants}
           initial="hidden"
           animate="visible"
           className="w-full"
         >
           {/* Badge */}
-          <motion.div
+          <m.div
             variants={itemVariants}
             className="mb-8 inline-flex items-center gap-2 rounded-full border border-ums-border bg-ums-bg/60 px-4 py-2 text-xs font-semibold uppercase tracking-[0.25em] text-ums-muted backdrop-blur"
           >
             <Sparkles className="h-4 w-4 text-ums-gold" aria-hidden="true" />
             Unique Management Solutions
-          </motion.div>
+          </m.div>
 
           {/* Main headline — gold */}
-          <motion.h1
+          <m.h1
             variants={itemVariants}
             className="mb-4 text-5xl font-bold tracking-tight text-ums-gold md:text-7xl lg:text-8xl"
           >
             Complexity into Clarity.
-          </motion.h1>
+          </m.h1>
 
           {/* Secondary headline — white */}
-          <motion.p
+          <m.p
             variants={itemVariants}
             className="mb-6 text-4xl font-semibold tracking-tight text-foreground md:text-5xl lg:text-6xl"
           >
             Crafted to Impress.
-          </motion.p>
+          </m.p>
 
           {/* One-line company descriptor */}
-          <motion.p
+          <m.p
             variants={itemVariants}
             className="mx-auto mb-12 max-w-xl text-base leading-relaxed text-ums-muted md:text-lg"
           >
             Your trusted Saudi partner for turning complexity into clarity.
-          </motion.p>
+          </m.p>
 
-          {/* Single primary CTA — gold bg, dark text, navigates to /store */}
-          <motion.div variants={itemVariants} className="mb-16 flex justify-center">
+          {/* Single primary CTA */}
+          <m.div variants={itemVariants} className="mb-16 flex justify-center">
             <Link
               href="/store"
               className="group inline-flex items-center gap-2 rounded-md bg-ums-gold px-8 py-4 text-sm font-bold uppercase tracking-[0.2em] text-ums-bg transition-opacity hover:opacity-90"
@@ -218,15 +216,15 @@ export default function HeroSection() {
                 aria-hidden="true"
               />
             </Link>
-          </motion.div>
+          </m.div>
 
           {/* Stats bar */}
-          <motion.div
+          <m.div
             variants={statsVariants}
             className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-ums-border bg-ums-border sm:grid-cols-4"
           >
             {heroStats.map(stat => (
-              <motion.div
+              <m.div
                 key={stat.label}
                 variants={itemVariants}
                 className="flex flex-col items-center gap-1 bg-ums-bg/80 px-6 py-5 backdrop-blur-sm"
@@ -237,10 +235,10 @@ export default function HeroSection() {
                 <span className="text-3xl font-bold text-ums-gold">
                   {stat.value}
                 </span>
-              </motion.div>
+              </m.div>
             ))}
-          </motion.div>
-        </motion.div>
+          </m.div>
+        </m.div>
       </div>
     </section>
   )

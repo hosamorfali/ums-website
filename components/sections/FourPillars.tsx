@@ -1,8 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { motion, type Variants } from 'framer-motion'
+import { m, type Variants } from 'framer-motion'
 import { Briefcase, Lightbulb, Zap, LayoutTemplate } from 'lucide-react'
+import type { ElementType } from 'react'
 
 const pillars = [
   {
@@ -54,14 +55,13 @@ export default function FourPillarsSection() {
       <div className="mx-auto max-w-6xl">
 
         {/* Section header */}
-        <motion.div
+        <m.div
           variants={headingVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-80px' }}
           className="mb-16 text-center"
         >
-          {/* Rule line above */}
           <div className="mx-auto mb-6 h-px w-16 bg-ums-gold" />
           <h2
             id="pillars-heading"
@@ -72,10 +72,10 @@ export default function FourPillarsSection() {
           <p className="mt-4 text-sm text-ums-muted uppercase tracking-[0.25em]">
             Everything we do is built on these foundations
           </p>
-        </motion.div>
+        </m.div>
 
         {/* 2×2 card grid */}
-        <motion.div
+        <m.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"
@@ -85,7 +85,7 @@ export default function FourPillarsSection() {
           {pillars.map((pillar) => (
             <PillarCard key={pillar.name} pillar={pillar} />
           ))}
-        </motion.div>
+        </m.div>
       </div>
     </section>
   )
@@ -94,13 +94,13 @@ export default function FourPillarsSection() {
 function PillarCard({
   pillar,
 }: {
-  pillar: { icon: React.ElementType; name: string; description: string }
+  pillar: { icon: ElementType; name: string; description: string }
 }) {
   const [hovered, setHovered] = useState(false)
   const Icon = pillar.icon
 
   return (
-    <motion.div
+    <m.div
       variants={cardVariants}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
@@ -150,6 +150,6 @@ function PillarCard({
             'radial-gradient(circle at bottom right, rgba(171,156,125,0.12) 0%, transparent 70%)',
         }}
       />
-    </motion.div>
+    </m.div>
   )
 }
