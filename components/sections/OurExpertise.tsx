@@ -107,24 +107,24 @@ export default function OurExpertiseSection() {
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-40px' }}
-          className="grid lg:grid-cols-3 divide-y lg:divide-y-0 lg:divide-x divide-[#5D523C]"
+          className="grid lg:grid-cols-3"
         >
           {[0, 1, 2].map(col => (
-            <div key={col} className="flex flex-col divide-y divide-[#5D523C]">
+            <div key={col} className="flex flex-col">
               {expertiseAreas.slice(col * 3, col * 3 + 3).map(area => {
                 const Icon = area.icon
                 return (
                   <m.div
                     key={area.name}
                     variants={itemVariants}
-                    className="group flex items-center gap-5 px-8 py-7 cursor-default"
+                    className="group flex items-center gap-6 px-8 py-8 cursor-default"
                   >
                     <Icon
-                      size={28}
-                      className="shrink-0 text-ums-muted/60 transition-all duration-300 group-hover:text-ums-gold group-hover:drop-shadow-[0_0_10px_rgba(171,156,125,0.5)]"
+                      size={36}
+                      className="shrink-0 text-ums-muted/60 transition-all duration-300 group-hover:text-ums-gold group-hover:drop-shadow-[0_0_12px_rgba(171,156,125,0.5)]"
                       aria-hidden="true"
                     />
-                    <span className="text-sm font-semibold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold">
+                    <span className="text-base font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold">
                       {area.name}
                     </span>
                   </m.div>

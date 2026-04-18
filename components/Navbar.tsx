@@ -58,9 +58,10 @@ export default function Navbar() {
           <Image
             src="/UMS Logo/UMS_logo_upscaled_faithful.png"
             alt="Unique Management Solutions"
-            width={120}
-            height={40}
-            className="h-9 w-auto object-contain"
+            width={220}
+            height={73}
+            className="h-7 w-auto object-contain"
+            unoptimized
             priority
           />
         </Link>

@@ -38,16 +38,19 @@ const pillars = [
 ]
 
 /* ── Animated wave canvas inside the diamond ─────────────── */
-const CANVAS_PX  = 340  // canvas render size
-const SQUARE_PX  = Math.round(CANVAS_PX / Math.SQRT2)  // rotated container size ≈ 240
-const OFFSET_PX  = Math.round((SQUARE_PX - CANVAS_PX) / 2)  // ≈ -50
+const CANVAS_PX = 340
+const SQUARE_PX = Math.round(CANVAS_PX / Math.SQRT2)
+const OFFSET_PX = Math.round((SQUARE_PX - CANVAS_PX) / 2)
 
 function DiamondWave() {
-  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const canvasRef  = useRef<HTMLCanvasElement>(null)
+  const outerRef   = useRef<HTMLDivElement>(null)
+  const mouseRef   = useRef({ nx: 0, ny: 0, active: false })
 
   useEffect(() => {
     const canvas = canvasRef.current
-    if (!canvas) return
+    const outer  = outerRef.current
+    if (!canvas || !outer) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
@@ -55,10 +58,10 @@ function DiamondWave() {
     canvas.height = CANVAS_PX
 
     const waves = [
-      { amp: 22, freq: 0.013, speed: 0.0022, phase: 0,              alpha: 0.50 },
-      { amp: 15, freq: 0.02,  speed: 0.003,  phase: Math.PI,        alpha: 0.33 },
-      { amp: 10, freq: 0.009, speed: 0.0018, phase: Math.PI / 2,    alpha: 0.22 },
-      { amp: 7,  freq: 0.028, speed: 0.0035, phase: Math.PI * 1.5,  alpha: 0.15 },
+      { amp: 22, freq: 0.013, speed: 0.0022, phase: 0,             alpha: 0.50 },
+      { amp: 15, freq: 0.02,  speed: 0.003,  phase: Math.PI,       alpha: 0.33 },
+      { amp: 10, freq: 0.009, speed: 0.0018, phase: Math.PI / 2,   alpha: 0.22 },
+      { amp: 7,  freq: 0.028, speed: 0.0035, phase: Math.PI * 1.5, alpha: 0.15 },
     ]
 
     let t = 0
@@ -66,17 +69,22 @@ function DiamondWave() {
 
     const draw = () => {
       t++
+      const { nx, ny, active } = mouseRef.current
+      const phaseNudge  = active ? (nx - 0.5) * Math.PI * 0.6 : 0
+      const vertNudge   = active ? (ny - 0.5) * 28            : 0
+
       ctx.fillStyle = '#1A1918'
       ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX)
 
-      waves.forEach(w => {
+      waves.forEach((w, i) => {
+        const sign = i % 2 === 0 ? 1 : -1
         ctx.beginPath()
         for (let x = 0; x <= CANVAS_PX; x += 2) {
-          const y = CANVAS_PX / 2
-            + Math.sin(x * w.freq + t * w.speed + w.phase) * w.amp
+          const y = CANVAS_PX / 2 + vertNudge * (0.6 + i * 0.15)
+            + Math.sin(x * w.freq + t * w.speed + w.phase + phaseNudge * sign) * w.amp
             + Math.sin(x * w.freq * 0.5 + t * w.speed * 0.7) * (w.amp * 0.4)
           if (x === 0) ctx.moveTo(x, y)
-          else ctx.lineTo(x, y)
+          else         ctx.lineTo(x, y)
         }
         ctx.strokeStyle = `rgba(171, 156, 125, ${w.alpha})`
         ctx.lineWidth   = 1.5
@@ -88,40 +96,56 @@ function DiamondWave() {
       animId = requestAnimationFrame(draw)
     }
 
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = outer.getBoundingClientRect()
+      mouseRef.current = {
+        nx: (e.clientX - rect.left) / rect.width,
+        ny: (e.clientY - rect.top)  / rect.height,
+        active: true,
+      }
+    }
+    const handleMouseLeave = () => { mouseRef.current.active = false }
+
+    outer.addEventListener('mousemove',  handleMouseMove)
+    outer.addEventListener('mouseleave', handleMouseLeave)
+
     animId = requestAnimationFrame(draw)
-    return () => cancelAnimationFrame(animId)
+    return () => {
+      cancelAnimationFrame(animId)
+      outer.removeEventListener('mousemove',  handleMouseMove)
+      outer.removeEventListener('mouseleave', handleMouseLeave)
+    }
   }, [])
 
   return (
-    /* Outer bounding-box div — same size as the diamond's visible diagonals */
     <div
+      ref={outerRef}
       className="relative shrink-0"
       style={{ width: CANVAS_PX, height: CANVAS_PX }}
     >
-      {/* Rotated square → appears as diamond */}
       <div
         style={{
-          position: 'absolute',
-          top:    '50%',
-          left:   '50%',
-          width:  SQUARE_PX,
-          height: SQUARE_PX,
+          position:   'absolute',
+          top:        '50%',
+          left:       '50%',
+          width:      SQUARE_PX,
+          height:     SQUARE_PX,
           marginTop:  -SQUARE_PX / 2,
           marginLeft: -SQUARE_PX / 2,
-          transform: 'rotate(45deg)',
-          border: '1px solid rgba(171,156,125,0.55)',
-          overflow: 'hidden',
-          boxShadow: '0 0 40px 0 rgba(171,156,125,0.07)',
+          transform:  'rotate(45deg)',
+          border:     '1px solid rgba(171,156,125,0.55)',
+          overflow:   'hidden',
+          boxShadow:  '0 0 40px 0 rgba(171,156,125,0.07)',
         }}
       >
         <canvas
           ref={canvasRef}
           style={{
-            position: 'absolute',
-            width:  CANVAS_PX,
-            height: CANVAS_PX,
-            top:  OFFSET_PX,
-            left: OFFSET_PX,
+            position:  'absolute',
+            width:     CANVAS_PX,
+            height:    CANVAS_PX,
+            top:       OFFSET_PX,
+            left:      OFFSET_PX,
             transform: 'rotate(-45deg)',
           }}
           aria-hidden="true"
@@ -150,11 +174,11 @@ function PillarText({
   align: 'left' | 'right'
 }) {
   return (
-    <div className={cn('flex flex-col gap-2', align === 'right' ? 'text-right items-end' : 'text-left items-start')}>
-      <h3 className="text-base font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold max-w-[260px]">
+    <div className={cn('flex flex-col gap-2.5', align === 'right' ? 'text-right items-end' : 'text-left items-start')}>
+      <h3 className="text-xl font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold max-w-[280px]">
         {pillar.name}
       </h3>
-      <p className="text-xs leading-relaxed text-ums-muted max-w-[260px]">
+      <p className="text-sm leading-relaxed text-ums-muted max-w-[280px]">
         {pillar.description}
       </p>
     </div>
@@ -174,7 +198,7 @@ function PillarIcon({ icon: Icon }: { icon: ElementType }) {
   )
 }
 
-/* ── Mobile pillar card (no diamond) ────────────────────── */
+/* ── Mobile pillar card ──────────────────────────────────── */
 function MobilePillarCard({ pillar }: { pillar: (typeof pillars)[0] }) {
   const Icon = pillar.icon
   return (
@@ -184,10 +208,10 @@ function MobilePillarCard({ pillar }: { pillar: (typeof pillars)[0] }) {
         className="text-ums-muted/70 transition-colors duration-300 group-hover:text-ums-gold"
         aria-hidden="true"
       />
-      <h3 className="text-sm font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold">
+      <h3 className="text-base font-bold leading-snug text-foreground transition-colors duration-300 group-hover:text-ums-gold">
         {pillar.name}
       </h3>
-      <p className="text-xs leading-relaxed text-ums-muted">
+      <p className="text-sm leading-relaxed text-ums-muted">
         {pillar.description}
       </p>
     </div>
@@ -224,7 +248,7 @@ export default function FourPillarsSection() {
           </p>
         </m.div>
 
-        {/* ── Mobile layout (< lg) — simple 2×2 grid ── */}
+        {/* ── Mobile layout (< lg) — 2×2 grid ── */}
         <div className="grid grid-cols-2 gap-x-8 gap-y-6 lg:hidden">
           {pillars.map(p => (
             <MobilePillarCard key={p.name} pillar={p} />
@@ -239,20 +263,19 @@ export default function FourPillarsSection() {
           viewport={{ once: true, margin: '-60px' }}
           className="hidden lg:grid grid-cols-[1fr_auto_1fr] items-center gap-8 xl:gap-12"
         >
-          {/* Left column — TL (top) and BL (bottom) */}
-          <div className="flex flex-col justify-between self-stretch gap-12">
-            {/* TL: Business Solutions */}
-            <div className="group flex flex-1 items-end justify-end gap-6 cursor-default">
-              <PillarText pillar={pillars[0]} align="right" />
+          {/* Left column */}
+          <div className="flex flex-col justify-between self-stretch gap-8">
+            {/* TL */}
+            <div className="group flex flex-1 items-center justify-end gap-6 cursor-default">
+              <PillarText pillar={pillars[0]} align="left" />
               <PillarIcon icon={pillars[0].icon} />
             </div>
 
-            {/* Divider */}
             <div className="mx-auto h-px w-full max-w-[80%] bg-ums-border/40" />
 
-            {/* BL: Rapid 360 */}
-            <div className="group flex flex-1 items-start justify-end gap-6 cursor-default">
-              <PillarText pillar={pillars[2]} align="right" />
+            {/* BL */}
+            <div className="group flex flex-1 items-center justify-end gap-6 cursor-default">
+              <PillarText pillar={pillars[2]} align="left" />
               <PillarIcon icon={pillars[2].icon} />
             </div>
           </div>
@@ -260,21 +283,20 @@ export default function FourPillarsSection() {
           {/* Center — animated diamond */}
           <DiamondWave />
 
-          {/* Right column — TR (top) and BR (bottom) */}
-          <div className="flex flex-col justify-between self-stretch gap-12">
-            {/* TR: Innovative Solutions */}
-            <div className="group flex flex-1 items-end justify-start gap-6 cursor-default">
+          {/* Right column */}
+          <div className="flex flex-col justify-between self-stretch gap-8">
+            {/* TR */}
+            <div className="group flex flex-1 items-center justify-start gap-6 cursor-default">
               <PillarIcon icon={pillars[1].icon} />
-              <PillarText pillar={pillars[1]} align="left" />
+              <PillarText pillar={pillars[1]} align="right" />
             </div>
 
-            {/* Divider */}
             <div className="mx-auto h-px w-full max-w-[80%] bg-ums-border/40" />
 
-            {/* BR: Tools & Templates */}
-            <div className="group flex flex-1 items-start justify-start gap-6 cursor-default">
+            {/* BR */}
+            <div className="group flex flex-1 items-center justify-start gap-6 cursor-default">
               <PillarIcon icon={pillars[3].icon} />
-              <PillarText pillar={pillars[3]} align="left" />
+              <PillarText pillar={pillars[3]} align="right" />
             </div>
           </div>
         </m.div>
