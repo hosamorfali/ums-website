@@ -1,8 +1,11 @@
+import HeroSection from '@/components/sections/Hero'
+
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-ums-bg">
-      {/* Section shells — built section by section after Step 4 confirmation */}
-      <section id="hero"      className="min-h-screen" />
+    <div className="bg-ums-bg">
+      <HeroSection />
+
+      {/* Remaining sections — built one by one after each confirmation */}
       <section id="about"     className="min-h-screen" />
       <section id="expertise" className="min-h-screen" />
       <section id="services"  className="min-h-screen" />
