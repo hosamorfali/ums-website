@@ -51,6 +51,25 @@ export function Level1Orbit({ onSelect }: Props) {
 
   return (
     <div className="relative flex items-center justify-center w-full h-full">
+      {/* Heading — above orbit */}
+      <div
+        className="absolute left-0 right-0 flex flex-col items-center gap-3 pointer-events-none"
+        style={{ top: 40, opacity: exiting ? 0 : 1, transition: 'opacity 0.5s' }}
+      >
+        <h1
+          className="text-4xl font-bold tracking-tight"
+          style={{ color: '#AB9C7D' }}
+        >
+          The Framework Navigator
+        </h1>
+        <p
+          className="text-[10px] font-semibold uppercase tracking-[0.28em]"
+          style={{ color: '#888073' }}
+        >
+          Browse by Category. Find Your Framework.
+        </p>
+      </div>
+
       {/* Orbit ring */}
       <div
         className="absolute rounded-full border border-ums-border/25 pointer-events-none"

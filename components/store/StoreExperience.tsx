@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { AnimatePresence, m } from 'framer-motion'
 import Image from 'next/image'
-import { ArrowLeft } from 'lucide-react'
+import { ArrowLeft, ChevronLeft, ChevronRight, LayoutGrid, Network } from 'lucide-react'
 import { StarsBackground } from './StarsBackground'
 import { Level1Orbit } from './Level1Orbit'
 import { Level2Network, type Level2NetworkHandle } from './Level2Network'
@@ -11,17 +11,25 @@ import { TemplateCard } from './TemplateCard'
 import { RequestForm } from './RequestForm'
 import { getTemplatesByCategory, CATEGORIES, type Template } from '@/lib/store-data'
 
+// px from top of L2 container reserved for header + statement text
+const TOP_PADDING = 130
+
 export function StoreExperience() {
   const [view,             setView]             = useState<'L1' | 'L2'>('L1')
   const [categoryId,       setCategoryId]       = useState<string | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
+  const [viewMode,         setViewMode]         = useState<'orbit' | 'grid'>('orbit')
   const networkRef = useRef<Level2NetworkHandle>(null)
 
-  const templates    = categoryId ? getTemplatesByCategory(categoryId) : []
+  const templates    = useMemo(
+    () => categoryId ? getTemplatesByCategory(categoryId) : [],
+    [categoryId],
+  )
   const categoryName = CATEGORIES.find(c => c.id === categoryId)?.name ?? ''
 
   const handleSelectCategory = useCallback((id: string) => {
     setCategoryId(id)
+    setViewMode('orbit')
     setView('L2')
   }, [])
 
@@ -47,8 +55,28 @@ export function StoreExperience() {
     }
   }, [templates])
 
+  // Prev / next template navigation
+  const handlePrevTemplate = useCallback(() => {
+    if (!selectedTemplate || templates.length === 0) return
+    const idx  = templates.findIndex(t => t.id === selectedTemplate.id)
+    const prev = templates[(idx - 1 + templates.length) % templates.length]
+    setSelectedTemplate(prev)
+    networkRef.current?.focusNode(prev.id)
+  }, [selectedTemplate, templates])
+
+  const handleNextTemplate = useCallback(() => {
+    if (!selectedTemplate || templates.length === 0) return
+    const idx  = templates.findIndex(t => t.id === selectedTemplate.id)
+    const next = templates[(idx + 1) % templates.length]
+    setSelectedTemplate(next)
+    networkRef.current?.focusNode(next.id)
+  }, [selectedTemplate, templates])
+
   return (
-    <div className="relative w-full overflow-hidden bg-ums-bg" style={{ height: 'calc(100vh - 64px)' }}>
+    <div
+      className="relative w-full overflow-hidden bg-ums-bg"
+      style={{ height: 'calc(100vh - 64px)' }}
+    >
       <StarsBackground />
 
       {/* ── Level 1 — Category Orbit ── */}
@@ -79,25 +107,63 @@ export function StoreExperience() {
             className="absolute inset-0"
           >
             {/* Top bar */}
-            <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-8 pt-7">
-              <button
-                onClick={handleBack}
-                className="flex items-center gap-1.5 text-xs text-ums-muted hover:text-ums-gold transition-colors"
+            <div className="absolute top-0 left-0 right-0 z-10 px-8 pt-7">
+              <div className="flex items-center justify-between">
+                <button
+                  onClick={handleBack}
+                  className="flex items-center gap-1.5 text-xs text-ums-muted hover:text-ums-gold transition-colors"
+                >
+                  <ArrowLeft size={13} />
+                  All Categories
+                </button>
+
+                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ums-gold">
+                  {categoryName}
+                </p>
+
+                {/* View mode toggle */}
+                <div
+                  className="flex items-center gap-1 rounded-full p-1"
+                  style={{ border: '1px solid #5D523C', background: '#1A1918' }}
+                >
+                  <button
+                    onClick={() => setViewMode('orbit')}
+                    title="Orbit view"
+                    className="flex items-center justify-center w-6 h-6 rounded-full transition-all"
+                    style={{
+                      background:  viewMode === 'orbit' ? '#AB9C7D' : 'transparent',
+                      color:       viewMode === 'orbit' ? '#1A1918' : '#888073',
+                    }}
+                  >
+                    <Network size={12} />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('grid')}
+                    title="Grid view"
+                    className="flex items-center justify-center w-6 h-6 rounded-full transition-all"
+                    style={{
+                      background: viewMode === 'grid' ? '#AB9C7D' : 'transparent',
+                      color:      viewMode === 'grid' ? '#1A1918' : '#888073',
+                    }}
+                  >
+                    <LayoutGrid size={12} />
+                  </button>
+                </div>
+              </div>
+
+              {/* Statement — sits below the top bar row, above canvas nodes */}
+              <p
+                className="text-center text-xs leading-relaxed mx-auto mt-3"
+                style={{ color: '#888073', maxWidth: 480 }}
               >
-                <ArrowLeft size={13} />
-                All Categories
-              </button>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ums-gold">
-                {categoryName}
+                We don&apos;t just give you templates — we transfer the knowledge behind them.
               </p>
-              {/* balance spacer */}
-              <div style={{ width: 110 }} />
             </div>
 
             {/* Ghost UMS logo — clickable back */}
             <button
               onClick={handleBack}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 opacity-[0.06] hover:opacity-[0.13] transition-opacity pointer-events-auto"
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 opacity-[0.06] hover:opacity-[0.13] transition-opacity"
               aria-label="Back to categories"
             >
               <Image
@@ -117,6 +183,8 @@ export function StoreExperience() {
               slowed={selectedTemplate !== null}
               onNodeClick={handleNodeClick}
               selectedId={selectedTemplate?.id ?? null}
+              viewMode={viewMode}
+              topPadding={TOP_PADDING}
             />
           </m.div>
         )}
@@ -131,6 +199,48 @@ export function StoreExperience() {
             onClose={handleCloseCard}
             onPairsWithClick={handlePairsWithClick}
           />
+        )}
+      </AnimatePresence>
+
+      {/* ── Template prev/next arrow navigation ── */}
+      <AnimatePresence>
+        {selectedTemplate && view === 'L2' && (
+          <>
+            <m.button
+              key="arrow-left"
+              initial={{ opacity: 0, x: -12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{    opacity: 0, x: -12 }}
+              transition={{ duration: 0.2 }}
+              onClick={handlePrevTemplate}
+              className="fixed left-4 top-1/2 -translate-y-1/2 z-[9998] flex items-center justify-center w-10 h-10 rounded-full transition-all hover:scale-110"
+              style={{
+                background: 'rgba(26,25,24,0.85)',
+                border:     '1px solid #5D523C',
+                color:      '#AB9C7D',
+              }}
+              aria-label="Previous template"
+            >
+              <ChevronLeft size={18} />
+            </m.button>
+            <m.button
+              key="arrow-right"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{    opacity: 0, x: 12 }}
+              transition={{ duration: 0.2 }}
+              onClick={handleNextTemplate}
+              className="fixed right-4 top-1/2 -translate-y-1/2 z-[9998] flex items-center justify-center w-10 h-10 rounded-full transition-all hover:scale-110"
+              style={{
+                background: 'rgba(26,25,24,0.85)',
+                border:     '1px solid #5D523C',
+                color:      '#AB9C7D',
+              }}
+              aria-label="Next template"
+            >
+              <ChevronRight size={18} />
+            </m.button>
+          </>
         )}
       </AnimatePresence>
 

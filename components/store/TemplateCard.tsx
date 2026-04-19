@@ -17,16 +17,13 @@ export function TemplateCard({ template, onClose, onPairsWithClick }: Props) {
   const [expanded,    setExpanded]    = useState(false)
   const [imgIndex,    setImgIndex]    = useState(0)
   const [cartLoading, setCartLoading] = useState(false)
-  const [cartDone,    setCartDone]    = useState(false)
-  const dragRef = useRef<HTMLDivElement>(null)
 
-  // Reset gallery index when template changes
+  // Reset when template changes
   const prevId = useRef(template.id)
   if (template.id !== prevId.current) {
     prevId.current = template.id
     setImgIndex(0)
     setExpanded(false)
-    setCartDone(false)
   }
 
   const handleAddToCart = useCallback(async () => {
@@ -50,25 +47,28 @@ export function TemplateCard({ template, onClose, onPairsWithClick }: Props) {
   const pairedTemplates = template.pairsWith.map(id => getTemplateById(id)).filter(Boolean) as Template[]
   const kitTemplate     = template.isKit ? null : getTemplateById('strategic-direction-kit')
 
-  const images = template.images
+  const images  = template.images
   const prevImg = () => setImgIndex(i => (i - 1 + images.length) % images.length)
   const nextImg = () => setImgIndex(i => (i + 1) % images.length)
+
+  // Center the card on viewport using fixed positioning — avoids transform conflict with framer drag
+  const cardLeft = typeof window !== 'undefined' ? Math.max(0, window.innerWidth  / 2 - 180) : 0
+  const cardTop  = typeof window !== 'undefined' ? Math.max(0, window.innerHeight / 2 - 220) : 0
 
   return (
     <m.div
       drag
       dragMomentum={false}
       dragElastic={0}
-      initial={{ opacity: 0, scale: 0.92, y: 20 }}
-      animate={{ opacity: 1, scale: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.92, y: 20 }}
+      initial={{ opacity: 0, scale: 0.92 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{    opacity: 0, scale: 0.92 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
       style={{
-        position:     'absolute',
-        top:          '50%',
-        left:         '50%',
-        transform:    'translate(-50%,-50%)',
-        zIndex:       50,
+        position:     'fixed',
+        top:          cardTop,
+        left:         cardLeft,
+        zIndex:       9999,
         width:        360,
         background:   '#1A1918',
         border:       '1px solid #5D523C',
@@ -79,7 +79,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick }: Props) {
         maxHeight:    'calc(100vh - 100px)',
         overflowY:    'auto',
       }}
-      ref={dragRef}
     >
       {/* Drag handle */}
       <div
@@ -98,7 +97,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick }: Props) {
         <X size={14} />
       </button>
 
-      {/* Preview image */}
+      {/* Preview image — always swipeable */}
       <div className="relative w-full" style={{ aspectRatio: '16/9', background: '#201F1D' }}>
         {images.length > 0 ? (
           <>
@@ -109,7 +108,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick }: Props) {
               className="object-cover"
               unoptimized
             />
-            {expanded && images.length > 1 && (
+            {images.length > 1 && (
               <>
                 <button
                   onClick={e => { e.stopPropagation(); prevImg() }}
