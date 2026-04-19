@@ -3,7 +3,7 @@
 import { useState, useRef, useCallback, useMemo } from 'react'
 import { AnimatePresence, m } from 'framer-motion'
 import Image from 'next/image'
-import { ArrowLeft, ChevronLeft, ChevronRight, LayoutGrid, Network } from 'lucide-react'
+import { ArrowLeft, LayoutGrid, Network } from 'lucide-react'
 import { StarsBackground } from './StarsBackground'
 import { Level1Orbit } from './Level1Orbit'
 import { Level2Network, type Level2NetworkHandle } from './Level2Network'
@@ -190,7 +190,7 @@ export function StoreExperience() {
         )}
       </AnimatePresence>
 
-      {/* ── Level 3 — Template Card ── */}
+      {/* ── Level 3 — Template Card (arrows live inside the card, move with drag) ── */}
       <AnimatePresence>
         {selectedTemplate && (
           <TemplateCard
@@ -198,49 +198,9 @@ export function StoreExperience() {
             template={selectedTemplate}
             onClose={handleCloseCard}
             onPairsWithClick={handlePairsWithClick}
+            onPrev={templates.length > 1 ? handlePrevTemplate : undefined}
+            onNext={templates.length > 1 ? handleNextTemplate : undefined}
           />
-        )}
-      </AnimatePresence>
-
-      {/* ── Template prev/next arrow navigation ── */}
-      <AnimatePresence>
-        {selectedTemplate && view === 'L2' && (
-          <>
-            <m.button
-              key="arrow-left"
-              initial={{ opacity: 0, x: -12 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{    opacity: 0, x: -12 }}
-              transition={{ duration: 0.2 }}
-              onClick={handlePrevTemplate}
-              className="fixed left-4 top-1/2 -translate-y-1/2 z-[9998] flex items-center justify-center w-10 h-10 rounded-full transition-all hover:scale-110"
-              style={{
-                background: 'rgba(26,25,24,0.85)',
-                border:     '1px solid #5D523C',
-                color:      '#AB9C7D',
-              }}
-              aria-label="Previous template"
-            >
-              <ChevronLeft size={18} />
-            </m.button>
-            <m.button
-              key="arrow-right"
-              initial={{ opacity: 0, x: 12 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{    opacity: 0, x: 12 }}
-              transition={{ duration: 0.2 }}
-              onClick={handleNextTemplate}
-              className="fixed right-4 top-1/2 -translate-y-1/2 z-[9998] flex items-center justify-center w-10 h-10 rounded-full transition-all hover:scale-110"
-              style={{
-                background: 'rgba(26,25,24,0.85)',
-                border:     '1px solid #5D523C',
-                color:      '#AB9C7D',
-              }}
-              aria-label="Next template"
-            >
-              <ChevronRight size={18} />
-            </m.button>
-          </>
         )}
       </AnimatePresence>
 

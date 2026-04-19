@@ -136,8 +136,10 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
             n.y += (n.targetY - n.y) * 0.08
           })
         } else {
-          // Velocity movement with boundary bounce
+          // Velocity movement with boundary bounce + gentle damping
           nodes.forEach(n => {
+            n.vx *= 0.999
+            n.vy *= 0.999
             n.x += n.vx * speed
             n.y += n.vy * speed
             if (n.x < n.radius)         { n.x = n.radius;          n.vx =  Math.abs(n.vx) }
@@ -146,31 +148,23 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
             if (n.y > H - n.radius)     { n.y = H - n.radius;      n.vy = -Math.abs(n.vy) }
           })
 
-          // Collision physics — elastic bouncing
+          // Soft repulsion — gentle position nudge only, no velocity changes (prevents jitter)
           for (let a = 0; a < nodes.length; a++) {
             for (let b = a + 1; b < nodes.length; b++) {
-              const na  = nodes[a]
-              const nb  = nodes[b]
-              const dx  = nb.x - na.x
-              const dy  = nb.y - na.y
+              const na   = nodes[a]
+              const nb   = nodes[b]
+              const dx   = nb.x - na.x
+              const dy   = nb.y - na.y
               const dist = Math.sqrt(dx * dx + dy * dy)
-              const min  = na.radius + nb.radius + 4
+              const min  = na.radius + nb.radius + 12
               if (dist < min && dist > 0) {
                 const nx   = dx / dist
                 const ny   = dy / dist
-                const push = (min - dist) / 2
+                const push = (min - dist) * 0.04
                 na.x -= nx * push
                 na.y -= ny * push
                 nb.x += nx * push
                 nb.y += ny * push
-                // Reflect normal component of relative velocity
-                const relV = (nb.vx - na.vx) * nx + (nb.vy - na.vy) * ny
-                if (relV < 0) {
-                  na.vx -= relV * nx
-                  na.vy -= relV * ny
-                  nb.vx += relV * nx
-                  nb.vy += relV * ny
-                }
               }
             }
           }

@@ -8,6 +8,8 @@ import { CATEGORIES } from '@/lib/store-data'
 const ORBIT_RADIUS = 210
 const ORBIT_SPEED  = 0.00014   // rad/ms
 const NODE_SIZE    = 88
+// Shift orbit centre below the geometric middle to balance with the heading above
+const ORBIT_OFFSET = 55
 
 interface Props {
   onSelect: (categoryId: string) => void
@@ -70,16 +72,27 @@ export function Level1Orbit({ onSelect }: Props) {
         </p>
       </div>
 
-      {/* Orbit ring */}
+      {/* Orbit ring — centred at offset point */}
       <div
         className="absolute rounded-full border border-ums-border/25 pointer-events-none"
-        style={{ width: ORBIT_RADIUS * 2, height: ORBIT_RADIUS * 2 }}
+        style={{
+          width:  ORBIT_RADIUS * 2,
+          height: ORBIT_RADIUS * 2,
+          top:    `calc(50% + ${ORBIT_OFFSET}px - ${ORBIT_RADIUS}px)`,
+          left:   `calc(50% - ${ORBIT_RADIUS}px)`,
+        }}
       />
 
-      {/* UMS logo — center */}
+      {/* UMS logo — at offset centre */}
       <div
-        className="relative z-20"
-        style={{ opacity: exiting ? 0.15 : 1, transition: 'opacity 0.6s' }}
+        className="absolute z-20"
+        style={{
+          top:       `calc(50% + ${ORBIT_OFFSET}px)`,
+          left:      '50%',
+          transform: 'translate(-50%, -50%)',
+          opacity:   exiting ? 0.15 : 1,
+          transition:'opacity 0.6s',
+        }}
       >
         <Image
           src="/UMS Logo/UMS_logo_upscaled_faithful.png"
@@ -103,7 +116,7 @@ export function Level1Orbit({ onSelect }: Props) {
           style={{
             position:   'absolute',
             left:       '50%',
-            top:        '50%',
+            top:        `calc(50% + ${ORBIT_OFFSET}px)`,
             width:      NODE_SIZE,
             height:     NODE_SIZE,
             marginLeft: -NODE_SIZE / 2,
@@ -145,7 +158,7 @@ export function Level1Orbit({ onSelect }: Props) {
             style={{
               position:   'absolute',
               left:       '50%',
-              top:        '50%',
+              top:        `calc(50% + ${ORBIT_OFFSET}px)`,
               width:      NODE_SIZE,
               height:     NODE_SIZE,
               marginLeft: -NODE_SIZE / 2,
