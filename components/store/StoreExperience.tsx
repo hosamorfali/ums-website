@@ -156,7 +156,7 @@ export function StoreExperience() {
                 className="text-center text-xs leading-relaxed mx-auto mt-3"
                 style={{ color: '#888073', maxWidth: 480 }}
               >
-                We don&apos;t just give you templates — we transfer the knowledge behind them.
+                You don&apos;t just get templates — you get the thinking behind them.
               </p>
             </div>
 
@@ -191,10 +191,10 @@ export function StoreExperience() {
       </AnimatePresence>
 
       {/* ── Level 3 — Template Card (arrows live inside the card, move with drag) ── */}
-      <AnimatePresence>
+      <AnimatePresence mode="wait">
         {selectedTemplate && (
           <TemplateCard
-            key="template-card"
+            key={selectedTemplate.id}
             template={selectedTemplate}
             onClose={handleCloseCard}
             onPairsWithClick={handlePairsWithClick}

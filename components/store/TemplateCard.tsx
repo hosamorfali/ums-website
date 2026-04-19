@@ -80,7 +80,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{    opacity: 0 }}
-      transition={{ duration: 0.25 }}
+      transition={{ duration: 0.15 }}
       style={{
         position:      'fixed',
         inset:         0,
@@ -102,7 +102,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         initial={{ scale: 0.92 }}
         animate={{ scale: 1 }}
         exit={{    scale: 0.92 }}
-        transition={{ duration: 0.25, ease: 'easeOut' }}
+        transition={{ duration: 0.15, ease: 'easeOut' }}
         style={{
           position:      'relative',
           display:       'flex',
@@ -173,14 +173,16 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); prevImg() }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      className="absolute left-2 bottom-8 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      style={{ cursor: 'pointer' }}
                     >
                       <ChevronLeft size={14} className="text-white" />
                     </button>
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); nextImg() }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      className="absolute right-2 bottom-8 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      style={{ cursor: 'pointer' }}
                     >
                       <ChevronRight size={14} className="text-white" />
                     </button>
@@ -252,7 +254,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                 <button
                   onClick={handleAddToCart}
                   disabled={cartLoading}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 disabled:opacity-60"
+                  className="flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
                   style={{ background: '#AB9C7D', color: '#1A1918' }}
                 >
                   <ShoppingCart size={12} />
@@ -310,7 +312,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                         <button
                           key={pt.id}
                           onClick={() => onPairsWithClick(pt.id)}
-                          className="text-left text-xs rounded-md px-3 py-2 transition-all hover:border-ums-gold/60 hover:text-ums-gold"
+                          className="text-left text-xs rounded-md px-3 py-2 transition-all hover:border-ums-gold/60 hover:text-ums-gold cursor-pointer"
                           style={{ border: '1px solid #5D523C', color: '#888073' }}
                         >
                           {pt.name}
@@ -319,7 +321,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                       {kitTemplate && (
                         <button
                           onClick={() => onPairsWithClick(kitTemplate.id)}
-                          className="text-left text-xs rounded-md px-3 py-2 transition-all hover:border-ums-gold/60 hover:text-ums-gold"
+                          className="text-left text-xs rounded-md px-3 py-2 transition-all hover:border-ums-gold/60 hover:text-ums-gold cursor-pointer"
                           style={{ border: '1px solid #5D523C', color: '#888073' }}
                         >
                           {kitTemplate.name} <span className="text-ums-gold ml-1">Bundle</span>
@@ -333,7 +335,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                 <button
                   onClick={handleAddToCart}
                   disabled={cartLoading}
-                  className="w-full flex items-center justify-center gap-2 rounded-md py-3 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 disabled:opacity-60"
+                  className="w-full flex items-center justify-center gap-2 rounded-md py-3 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
                   style={{ background: '#AB9C7D', color: '#1A1918' }}
                 >
                   <ShoppingCart size={12} />
