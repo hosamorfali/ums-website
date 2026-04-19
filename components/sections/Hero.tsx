@@ -17,10 +17,9 @@ interface WaveConfig {
 
 /* ── UMS Stats — exact numbers TBC by Hosam ─────────────── */
 const heroStats = [
-  { label: 'Clients Served',       value: '25+'  },
-  { label: 'Template Categories',  value: '5'    },
-  { label: 'Frameworks Available', value: '50+'  },
-  { label: 'Turnaround',           value: '48h'  },
+  { label: 'Clients Served',       value: '5+'  },
+  { label: 'Template Categories',  value: '5'   },
+  { label: 'Frameworks Available', value: '50+' },
 ]
 
 /* ── Framer Motion variants ──────────────────────────────── */
@@ -221,7 +220,7 @@ export default function HeroSection() {
           {/* Stats bar */}
           <m.div
             variants={statsVariants}
-            className="grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-ums-border bg-ums-border sm:grid-cols-4"
+            className="grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-ums-border bg-ums-border"
           >
             {heroStats.map(stat => (
               <m.div

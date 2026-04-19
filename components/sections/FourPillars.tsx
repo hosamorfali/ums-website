@@ -241,10 +241,10 @@ export default function FourPillarsSection() {
             id="pillars-heading"
             className="text-4xl font-bold tracking-tight text-ums-gold md:text-5xl"
           >
-            Four Pillars. One Firm.
+            Our Core Services
           </h2>
           <p className="mt-4 text-sm text-ums-muted uppercase tracking-[0.25em]">
-            Everything we do is built on these foundations
+            Everything we do is built to solve, enable, and deliver
           </p>
         </m.div>
 

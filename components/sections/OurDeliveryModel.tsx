@@ -8,24 +8,24 @@ const MAILTO = 'mailto:info@ums-solutions.com'
 const deliveryCards = [
   {
     icon: Download,
-    badge: 'Instant Download',
+    badge: 'Instant Purchase',
     title: 'Self-Serve',
     description:
-      'Browse the store, buy what you need, and download immediately. Consultant-grade frameworks ready to use from the moment of purchase.',
+      'Select the template you need and start using it immediately. No setup, no complexity, just ready-to-use, consultant-grade frameworks. Every template is structured to guide you and transfer the knowledge behind the work.',
   },
   {
     icon: Palette,
-    badge: 'Custom Quotation',
-    title: 'Branded Edition',
+    badge: 'Custom Request',
+    title: 'Tailored Edition',
     description:
-      'Your framework, your brand. We take any template from our library and adapt it to your organisation\'s visual identity, tone, and structure.',
+      'We take any template from our library and tailor it to your organization\'s visual identity, while building the content and refining the overall strategic narrative for your context.',
   },
   {
     icon: Layers,
-    badge: 'Custom Quotation',
-    title: 'Strategic Build',
+    badge: 'Custom Engagement',
+    title: 'Full-Service Delivery',
     description:
-      'End-to-end consulting delivery. We work alongside you to build the strategy, the frameworks, and the outputs your organisation needs from the ground up.',
+      'We work alongside you to fully understand your challenges, define the right approach, and build the tools, narrative, and story required to deliver a complete, submission-ready output.',
   },
 ]
 
@@ -64,10 +64,10 @@ export default function OurDeliveryModelSection() {
             id="delivery-heading"
             className="text-4xl font-bold tracking-tight text-ums-gold md:text-5xl"
           >
-            Every Framework. Delivered Three Ways.
+            Our Service Models
           </h2>
           <p className="mt-4 text-sm text-ums-muted uppercase tracking-[0.25em]">
-            Choose the model that fits your need
+            From self-serve tools to fully delivered solutions, choose the level of support you need
           </p>
         </m.div>
 
