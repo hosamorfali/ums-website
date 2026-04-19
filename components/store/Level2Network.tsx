@@ -6,10 +6,11 @@ import {
 } from 'react'
 import type { Template } from '@/lib/store-data'
 
-const BASE_SPEED      = 0.35
-const SLOW_MULTIPLIER = 0.2
-const REGULAR_RADIUS  = 36
-const KIT_RADIUS      = 52
+const BASE_SPEED          = 0.35
+const SLOW_MULTIPLIER     = 0.2
+const REGULAR_RADIUS      = 36
+const KIT_RADIUS          = 52
+const CONNECTION_DISTANCE = 340
 
 interface NetworkNode {
   id: string
@@ -66,20 +67,16 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
     const computeGridTargets = useCallback((W: number, H: number) => {
       const nodes = nodesRef.current
       const n = nodes.length
-      if (n === 0) return
-      const cols = Math.ceil(Math.sqrt(n))
-      const rows = Math.ceil(n / cols)
-      const topP = topPadRef.current + 20
-      const hPad = 80
-      const availW = W - hPad * 2
-      const availH = H - topP - 40
-      const cellW  = availW / cols
-      const cellH  = availH / rows
+      if (n === 0 || W <= 0 || H <= 0) return
+      const cols  = Math.ceil(Math.sqrt(n))
+      const rows  = Math.ceil(n / cols)
+      const topP  = topPadRef.current + 20
+      const hPad  = 80
+      const cellW = (W - hPad * 2) / cols
+      const cellH = (H - topP - 40) / rows
       nodes.forEach((node, i) => {
-        const col = i % cols
-        const row = Math.floor(i / cols)
-        node.targetX = hPad + cellW * col + cellW / 2
-        node.targetY = topP + cellH * row + cellH / 2
+        node.targetX = hPad + (i % cols) * cellW + cellW / 2
+        node.targetY = topP + Math.floor(i / cols) * cellH + cellH / 2
       })
     }, [])
 
@@ -170,17 +167,21 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
           }
         }
 
-        // Connection lines — all pairs, clearly visible
+        // Connection lines — distance-based, fading alpha (original behaviour)
         for (let a = 0; a < nodes.length; a++) {
           for (let b = a + 1; b < nodes.length; b++) {
-            const na = nodes[a]
-            const nb = nodes[b]
-            ctx.beginPath()
-            ctx.moveTo(na.x, na.y)
-            ctx.lineTo(nb.x, nb.y)
-            ctx.strokeStyle = 'rgba(93,82,60,0.7)'
-            ctx.lineWidth   = 1
-            ctx.stroke()
+            const na = nodes[a], nb = nodes[b]
+            const dx = na.x - nb.x, dy = na.y - nb.y
+            const dist = Math.sqrt(dx * dx + dy * dy)
+            if (dist < CONNECTION_DISTANCE) {
+              const alpha = (1 - dist / CONNECTION_DISTANCE) * 0.45
+              ctx.beginPath()
+              ctx.moveTo(na.x, na.y)
+              ctx.lineTo(nb.x, nb.y)
+              ctx.strokeStyle = `rgba(93,82,60,${alpha})`
+              ctx.lineWidth   = 0.8
+              ctx.stroke()
+            }
           }
         }
 
@@ -278,11 +279,18 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
       }
     }, [templates, initNodes, onNodeClick, computeGridTargets])
 
-    // Recompute grid positions whenever viewMode switches to grid
+    // Recompute grid positions when viewMode switches to grid
     useEffect(() => {
+      const canvas = canvasRef.current
+      if (!canvas || canvas.width === 0) return
       if (viewMode === 'grid') {
-        const canvas = canvasRef.current
-        if (canvas) computeGridTargets(canvas.width, canvas.height)
+        computeGridTargets(canvas.width, canvas.height)
+      } else {
+        // Restore gentle drift velocity when returning to orbit
+        nodesRef.current.forEach(n => {
+          if (Math.abs(n.vx) < 0.05) n.vx = (Math.random() - 0.5) * BASE_SPEED
+          if (Math.abs(n.vy) < 0.05) n.vy = (Math.random() - 0.5) * BASE_SPEED
+        })
       }
     }, [viewMode, computeGridTargets])
 
