@@ -128,7 +128,7 @@ export function StoreExperience() {
                 >
                   <button
                     onClick={() => setViewMode('orbit')}
-                    title="Orbit view"
+                    title="Floating View"
                     className="flex items-center justify-center w-6 h-6 rounded-full transition-all"
                     style={{
                       background:  viewMode === 'orbit' ? '#AB9C7D' : 'transparent',
@@ -151,10 +151,10 @@ export function StoreExperience() {
                 </div>
               </div>
 
-              {/* Statement — sits below the top bar row, above canvas nodes */}
+              {/* Statement — absolutely centred below the top bar */}
               <p
-                className="text-center text-xs leading-relaxed mx-auto mt-3"
-                style={{ color: '#888073', maxWidth: 480 }}
+                className="absolute left-0 right-0 text-center text-xs leading-relaxed mx-auto"
+                style={{ color: '#888073', maxWidth: 480, top: 'calc(100% + 12px)', margin: '0 auto' }}
               >
                 You don&apos;t just get templates — you get the thinking behind them.
               </p>

@@ -1,9 +1,9 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
-import { m, useDragControls } from 'framer-motion'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { m, useDragControls, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
-import { X, ChevronLeft, ChevronRight, ChevronUp, ShoppingCart } from 'lucide-react'
+import { X, ChevronLeft, ChevronRight, ChevronUp, ShoppingCart, ZoomIn } from 'lucide-react'
 import { createCart, addToCart } from '@/lib/shopify'
 import { getTemplateById, KIT_INCLUDES, KIT_OPENING, type Template } from '@/lib/store-data'
 
@@ -33,9 +33,11 @@ const NAV_BTN: React.CSSProperties = {
 }
 
 export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNext }: Props) {
-  const [expanded,    setExpanded]    = useState(false)
-  const [imgIndex,    setImgIndex]    = useState(0)
-  const [cartLoading, setCartLoading] = useState(false)
+  const [expanded,      setExpanded]      = useState(false)
+  const [imgIndex,      setImgIndex]      = useState(0)
+  const [cartLoading,   setCartLoading]   = useState(false)
+  const [lightboxOpen,  setLightboxOpen]  = useState(false)
+  const [lightboxIdx,   setLightboxIdx]   = useState(0)
 
   const constraintsRef = useRef<HTMLDivElement>(null)
   const dragControls   = useDragControls()
@@ -46,6 +48,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     prevId.current = template.id
     setImgIndex(0)
     setExpanded(false)
+    setLightboxOpen(false)
   }
 
   const handleAddToCart = useCallback(async () => {
@@ -73,8 +76,28 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const prevImg = () => setImgIndex(i => (i - 1 + images.length) % images.length)
   const nextImg = () => setImgIndex(i => (i + 1) % images.length)
 
+  const openLightbox = useCallback((idx: number) => {
+    setLightboxIdx(idx)
+    setLightboxOpen(true)
+  }, [])
+
+  const lbPrev = useCallback(() => setLightboxIdx(i => (i - 1 + images.length) % images.length), [images.length])
+  const lbNext = useCallback(() => setLightboxIdx(i => (i + 1) % images.length), [images.length])
+
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape')      setLightboxOpen(false)
+      if (e.key === 'ArrowLeft')   lbPrev()
+      if (e.key === 'ArrowRight')  lbNext()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [lightboxOpen, lbPrev, lbNext])
+
   // ── Outer: fixed full-screen centering wrapper (opacity transition via AnimatePresence)
   return (
+    <>
     <m.div
       ref={constraintsRef}
       initial={{ opacity: 0 }}
@@ -161,19 +184,31 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           >
             {images.length > 0 ? (
               <>
-                <Image
-                  src={images[imgIndex]}
-                  alt={template.shortName}
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+                <div
+                  onPointerDown={e => e.stopPropagation()}
+                  onClick={e => { e.stopPropagation(); openLightbox(imgIndex) }}
+                  className="absolute inset-0 z-[1] group"
+                  style={{ cursor: 'zoom-in' }}
+                >
+                  <Image
+                    src={images[imgIndex]}
+                    alt={template.shortName}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="rounded-full bg-black/50 p-2">
+                      <ZoomIn size={18} className="text-white" />
+                    </div>
+                  </div>
+                </div>
                 {images.length > 1 && (
                   <>
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); prevImg() }}
-                      className="absolute left-2 bottom-8 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      className="absolute left-2 bottom-8 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
                       style={{ cursor: 'pointer' }}
                     >
                       <ChevronLeft size={14} className="text-white" />
@@ -181,12 +216,12 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); nextImg() }}
-                      className="absolute right-2 bottom-8 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors"
+                      className="absolute right-2 bottom-8 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
                       style={{ cursor: 'pointer' }}
                     >
                       <ChevronRight size={14} className="text-white" />
                     </button>
-                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1">
+                    <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-[2]">
                       {images.map((_, i) => (
                         <button
                           key={i}
@@ -372,5 +407,95 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         )}
       </m.div>
     </m.div>
+
+      {/* ── Lightbox ── */}
+      <AnimatePresence>
+        {lightboxOpen && images.length > 0 && (
+          <m.div
+            key="lightbox"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18 }}
+            onClick={() => setLightboxOpen(false)}
+            style={{
+              position:       'fixed',
+              inset:          0,
+              zIndex:         99999,
+              background:     'rgba(26,25,24,0.95)',
+              display:        'flex',
+              alignItems:     'center',
+              justifyContent: 'center',
+            }}
+          >
+            {/* Close */}
+            <button
+              onClick={e => { e.stopPropagation(); setLightboxOpen(false) }}
+              className="absolute top-5 right-5 flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors"
+              style={{ color: '#AB9C7D', cursor: 'pointer', zIndex: 1 }}
+              aria-label="Close lightbox"
+            >
+              <X size={18} />
+            </button>
+
+            {/* Image */}
+            <div
+              onClick={e => e.stopPropagation()}
+              style={{ position: 'relative', maxWidth: '90vw', maxHeight: '85vh', width: '100%', height: '100%' }}
+            >
+              <Image
+                src={images[lightboxIdx]}
+                alt={`${template.shortName} preview ${lightboxIdx + 1}`}
+                fill
+                className="object-contain"
+                unoptimized
+              />
+            </div>
+
+            {/* Left arrow */}
+            {images.length > 1 && (
+              <button
+                onClick={e => { e.stopPropagation(); lbPrev() }}
+                className="absolute left-5 flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 transition-colors"
+                style={{ color: '#AB9C7D', border: '1px solid #5D523C', background: 'rgba(26,25,24,0.8)', cursor: 'pointer' }}
+                aria-label="Previous image"
+              >
+                <ChevronLeft size={20} />
+              </button>
+            )}
+
+            {/* Right arrow */}
+            {images.length > 1 && (
+              <button
+                onClick={e => { e.stopPropagation(); lbNext() }}
+                className="absolute right-5 flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 transition-colors"
+                style={{ color: '#AB9C7D', border: '1px solid #5D523C', background: 'rgba(26,25,24,0.8)', cursor: 'pointer' }}
+                aria-label="Next image"
+              >
+                <ChevronRight size={20} />
+              </button>
+            )}
+
+            {/* Dots */}
+            {images.length > 1 && (
+              <div
+                onClick={e => e.stopPropagation()}
+                className="absolute bottom-6 left-0 right-0 flex justify-center gap-2"
+              >
+                {images.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={e => { e.stopPropagation(); setLightboxIdx(i) }}
+                    className="w-2 h-2 rounded-full transition-all"
+                    style={{ background: i === lightboxIdx ? '#AB9C7D' : 'rgba(171,156,125,0.35)', cursor: 'pointer' }}
+                    aria-label={`Image ${i + 1}`}
+                  />
+                ))}
+              </div>
+            )}
+          </m.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }

@@ -4,6 +4,7 @@ import { m, type Variants } from 'framer-motion'
 import { Mail, Send, ArrowRight } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
 import { subscribeEmail } from '@/lib/shopify'
+import { sendContactEmail } from '@/lib/emailjs'
 
 const sectionVariants: Variants = {
   hidden:  { opacity: 0, y: 20 },
@@ -20,7 +21,7 @@ const colRightVariants: Variants = {
 
 export default function ConnectWithUsSection() {
   /* Contact form state */
-  const [form, setForm] = useState({ name: '', email: '', message: '' })
+  const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' })
   const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
   /* Subscribe state */
@@ -31,14 +32,9 @@ export default function ConnectWithUsSection() {
     e.preventDefault()
     setFormStatus('sending')
     try {
-      /* Open mailto with pre-filled content — no backend required for contact form */
-      const subject = encodeURIComponent(`Website enquiry from ${form.name}`)
-      const body    = encodeURIComponent(
-        `Name: ${form.name}\nEmail: ${form.email}\n\nMessage:\n${form.message}`,
-      )
-      window.location.href = `mailto:info@ums-solutions.com?subject=${subject}&body=${body}`
+      await sendContactEmail({ from_name: form.name, phone_number: form.phone, from_email: form.email, message: form.message })
       setFormStatus('sent')
-      setForm({ name: '', email: '', message: '' })
+      setForm({ name: '', phone: '', email: '', message: '' })
     } catch {
       setFormStatus('error')
     }
@@ -209,6 +205,22 @@ export default function ConnectWithUsSection() {
                 />
               </div>
 
+              {/* Phone */}
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="contact-phone" className="text-xs uppercase tracking-[0.15em] text-ums-muted">
+                  Phone <span className="normal-case tracking-normal">(optional)</span>
+                </label>
+                <input
+                  id="contact-phone"
+                  type="tel"
+                  value={form.phone}
+                  onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
+                  placeholder="+966 5X XXX XXXX"
+                  disabled={formStatus === 'sending' || formStatus === 'sent'}
+                  className="rounded-md border border-ums-border bg-ums-bg px-4 py-3 text-sm text-foreground placeholder:text-ums-muted/40 focus:outline-none focus:ring-1 focus:ring-ums-gold disabled:opacity-50"
+                />
+              </div>
+
               {/* Email */}
               <div className="flex flex-col gap-1.5">
                 <label htmlFor="contact-email" className="text-xs uppercase tracking-[0.15em] text-ums-muted">
@@ -267,7 +279,7 @@ export default function ConnectWithUsSection() {
 
               {formStatus === 'sent' && (
                 <p className="text-xs text-ums-gold">
-                  Your message has been opened in your email client — send it to complete your enquiry.
+                  Thank you — your message has been sent. We&apos;ll be in touch soon.
                 </p>
               )}
             </form>

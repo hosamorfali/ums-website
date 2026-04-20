@@ -49,7 +49,9 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
     const selectedRef = useRef(selectedId)
     const viewModeRef = useRef(viewMode)
     const topPadRef   = useRef(topPadding)
-    const animRef     = useRef<number>(0)
+    const animRef       = useRef<number>(0)
+    const scatteringRef = useRef(false)
+    const scatterEndRef = useRef(0)
 
     slowedRef.current   = slowed
     selectedRef.current = selectedId
@@ -126,11 +128,21 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
 
         ctx.clearRect(0, 0, W, H)
 
+        const now = performance.now()
+        const isScattering = scatteringRef.current && now < scatterEndRef.current
+        if (!isScattering && scatteringRef.current) scatteringRef.current = false
+
         if (isGrid) {
           // Lerp toward grid targets — no velocity
           nodes.forEach(n => {
             n.x += (n.targetX - n.x) * 0.08
             n.y += (n.targetY - n.y) * 0.08
+          })
+        } else if (isScattering) {
+          // Lerp toward scatter targets then resume drift
+          nodes.forEach(n => {
+            n.x += (n.targetX - n.x) * 0.06
+            n.y += (n.targetY - n.y) * 0.06
           })
         } else {
           // Velocity movement with boundary bounce + gentle damping
@@ -286,11 +298,19 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
       if (viewMode === 'grid') {
         computeGridTargets(canvas.width, canvas.height)
       } else {
-        // Restore gentle drift velocity when returning to orbit
+        // Scatter nodes to random positions, then resume drift after 900ms
+        const W = canvas.width
+        const H = canvas.height
+        const topP = topPadRef.current
         nodesRef.current.forEach(n => {
-          if (Math.abs(n.vx) < 0.05) n.vx = (Math.random() - 0.5) * BASE_SPEED
-          if (Math.abs(n.vy) < 0.05) n.vy = (Math.random() - 0.5) * BASE_SPEED
+          const pad = n.radius + 40
+          n.targetX = pad + Math.random() * (W - pad * 2)
+          n.targetY = topP + pad + Math.random() * (H - topP - pad * 2)
+          n.vx = (Math.random() - 0.5) * BASE_SPEED * 2
+          n.vy = (Math.random() - 0.5) * BASE_SPEED * 2
         })
+        scatteringRef.current = true
+        scatterEndRef.current = performance.now() + 900
       }
     }, [viewMode, computeGridTargets])
 
