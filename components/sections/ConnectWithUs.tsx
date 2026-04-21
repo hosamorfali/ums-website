@@ -130,7 +130,7 @@ export default function ConnectWithUsSection() {
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-ums-muted mb-1">LinkedIn</p>
                 <a
-                  href="https://www.linkedin.com/company/unique-management-solutions"
+                  href="https://www.linkedin.com/company/ums-management-solutions"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm font-medium text-foreground hover:text-ums-gold transition-colors"
