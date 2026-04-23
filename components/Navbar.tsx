@@ -3,10 +3,11 @@
 import { useState, useRef, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { ChevronDown, X, Menu } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { ChevronDown, X, Menu, ShoppingCart } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { subscribeEmail } from '@/lib/shopify'
+import { useCart } from '@/lib/cart-context'
 
 const NAV_LINKS = [
   { label: 'About',     href: '/#about' },
@@ -16,7 +17,15 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const pathname = usePathname()
+  const router   = useRouter()
   const isStore  = pathname === '/store'
+
+  const { totalCount, openDrawer } = useCart()
+
+  const handleCartClick = () => {
+    if (isStore) { openDrawer() }
+    else         { router.push('/store') }
+  }
 
   const [insightsOpen, setInsightsOpen]     = useState(false)
   const [mobileOpen,   setMobileOpen]       = useState(false)
@@ -136,6 +145,24 @@ export default function Navbar() {
               </div>
             )}
           </div>
+
+          {/* Cart icon */}
+          <button
+            onClick={handleCartClick}
+            className="relative flex items-center justify-center w-9 h-9 rounded-md hover:bg-white/5 transition-colors"
+            style={{ color: totalCount > 0 ? '#AB9C7D' : '#888073', cursor: 'pointer' }}
+            aria-label="Open cart"
+          >
+            <ShoppingCart size={17} />
+            {totalCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold"
+                style={{ background: '#AB9C7D', color: '#1A1918' }}
+              >
+                {totalCount}
+              </span>
+            )}
+          </button>
 
           {/* Get in Touch CTA */}
           <Link

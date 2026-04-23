@@ -9,7 +9,8 @@ import { Level1Orbit } from './Level1Orbit'
 import { Level2Network, type Level2NetworkHandle } from './Level2Network'
 import { TemplateCard } from './TemplateCard'
 import { RequestForm } from './RequestForm'
-import { getTemplatesByCategory, CATEGORIES, type Template } from '@/lib/store-data'
+import { CartDrawer } from './CartDrawer'
+import { getTemplatesByCategory, getTemplateById, CATEGORIES, type Template } from '@/lib/store-data'
 
 // px from top of L2 container reserved for header + statement text
 const TOP_PADDING = 130
@@ -206,6 +207,20 @@ export function StoreExperience() {
 
       {/* ── Request Form ── */}
       <RequestForm />
+
+      {/* ── Cart Drawer ── */}
+      <CartDrawer onOpenTemplate={(id) => {
+        const t = getTemplateById(id)
+        if (!t) return
+        // If we're in a different category, switch to that template's category first
+        if (t.category !== categoryId) {
+          setCategoryId(t.category)
+          setView('L2')
+          setViewMode('orbit')
+        }
+        setSelectedTemplate(t)
+        networkRef.current?.focusNode(id)
+      }} />
     </div>
   )
 }

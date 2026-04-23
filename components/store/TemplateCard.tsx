@@ -4,9 +4,8 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { m, useDragControls, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight, ChevronUp, ShoppingCart, ZoomIn } from 'lucide-react'
-import { createCart, addToCart } from '@/lib/shopify'
 import { getTemplateById, KIT_INCLUDES, KIT_OPENING, type Template } from '@/lib/store-data'
-import { MoyasarCheckout } from './MoyasarCheckout'
+import { useCart } from '@/lib/cart-context'
 
 interface Props {
   template: Template
@@ -34,12 +33,14 @@ const NAV_BTN: React.CSSProperties = {
 }
 
 export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNext }: Props) {
-  const [expanded,      setExpanded]      = useState(false)
-  const [imgIndex,      setImgIndex]      = useState(0)
-  const [cartLoading,   setCartLoading]   = useState(false)
-  const [lightboxOpen,  setLightboxOpen]  = useState(false)
-  const [lightboxIdx,   setLightboxIdx]   = useState(0)
-  const [checkoutOpen,  setCheckoutOpen]  = useState(false)
+  const [expanded,     setExpanded]     = useState(false)
+  const [imgIndex,     setImgIndex]     = useState(0)
+  const [lightboxOpen, setLightboxOpen] = useState(false)
+  const [lightboxIdx,  setLightboxIdx]  = useState(0)
+  const [addedFlash,   setAddedFlash]   = useState(false)
+
+  const { addItem, items: cartItems } = useCart()
+  const inCart = cartItems.some(i => i.template.id === template.id)
 
   const constraintsRef = useRef<HTMLDivElement>(null)
   const dragControls   = useDragControls()
@@ -51,26 +52,14 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     setImgIndex(0)
     setExpanded(false)
     setLightboxOpen(false)
-    setCheckoutOpen(false)
+    setAddedFlash(false)
   }
 
-  const handleAddToCart = useCallback(async () => {
-    if (!template.shopifyVariantId) {
-      setCheckoutOpen(true)
-      return
-    }
-    setCartLoading(true)
-    try {
-      const cartRes = await createCart()
-      const cartId  = cartRes.data.cartCreate.cart.id
-      const lineRes = await addToCart(cartId, template.shopifyVariantId)
-      window.location.href = lineRes.data.cartLinesAdd.cart.checkoutUrl
-    } catch {
-      setCheckoutOpen(true)
-    } finally {
-      setCartLoading(false)
-    }
-  }, [template])
+  const handleAddToCart = useCallback(() => {
+    addItem(template)
+    setAddedFlash(true)
+    setTimeout(() => setAddedFlash(false), 1500)
+  }, [template, addItem])
 
   const pairedTemplates = template.pairsWith.map(id => getTemplateById(id)).filter(Boolean) as Template[]
   const kitTemplate     = template.isKit ? null : getTemplateById('strategic-direction-kit')
@@ -291,12 +280,11 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               <div className="flex gap-3">
                 <button
                   onClick={handleAddToCart}
-                  disabled={cartLoading}
-                  className="flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
-                  style={{ background: '#AB9C7D', color: '#1A1918' }}
+                  className="flex-1 flex items-center justify-center gap-2 rounded-md py-2.5 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 cursor-pointer"
+                  style={{ background: inCart ? '#5D523C' : '#AB9C7D', color: '#1A1918' }}
                 >
                   <ShoppingCart size={12} />
-                  {cartLoading ? 'Adding…' : 'Add to Cart'}
+                  {addedFlash ? 'Added!' : inCart ? 'In Cart' : 'Add to Cart'}
                 </button>
                 {!template.isKit && (
                   <button
@@ -372,12 +360,11 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                 {/* Full-width Add to Cart */}
                 <button
                   onClick={handleAddToCart}
-                  disabled={cartLoading}
-                  className="w-full flex items-center justify-center gap-2 rounded-md py-3 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 disabled:opacity-60 cursor-pointer"
-                  style={{ background: '#AB9C7D', color: '#1A1918' }}
+                  className="w-full flex items-center justify-center gap-2 rounded-md py-3 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 cursor-pointer"
+                  style={{ background: inCart ? '#5D523C' : '#AB9C7D', color: '#1A1918' }}
                 >
                   <ShoppingCart size={12} />
-                  {cartLoading ? 'Adding…' : `Add to Cart — SAR ${template.price.toLocaleString()}`}
+                  {addedFlash ? 'Added!' : inCart ? 'In Cart' : `Add to Cart — SAR ${template.price.toLocaleString()}`}
                 </button>
 
                 <p className="text-center text-xs text-ums-muted">Learn it. Apply it. Own it.</p>
@@ -410,17 +397,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         )}
       </m.div>
     </m.div>
-
-      {/* ── Moyasar Checkout ── */}
-      <AnimatePresence>
-        {checkoutOpen && (
-          <MoyasarCheckout
-            key="moyasar-checkout"
-            template={template}
-            onClose={() => setCheckoutOpen(false)}
-          />
-        )}
-      </AnimatePresence>
 
       {/* ── Lightbox ── */}
       <AnimatePresence>
