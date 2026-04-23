@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight, ChevronUp, ShoppingCart, ZoomIn } from 'lucide-react'
 import { createCart, addToCart } from '@/lib/shopify'
 import { getTemplateById, KIT_INCLUDES, KIT_OPENING, type Template } from '@/lib/store-data'
+import { MoyasarCheckout } from './MoyasarCheckout'
 
 interface Props {
   template: Template
@@ -38,6 +39,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const [cartLoading,   setCartLoading]   = useState(false)
   const [lightboxOpen,  setLightboxOpen]  = useState(false)
   const [lightboxIdx,   setLightboxIdx]   = useState(0)
+  const [checkoutOpen,  setCheckoutOpen]  = useState(false)
 
   const constraintsRef = useRef<HTMLDivElement>(null)
   const dragControls   = useDragControls()
@@ -49,11 +51,12 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     setImgIndex(0)
     setExpanded(false)
     setLightboxOpen(false)
+    setCheckoutOpen(false)
   }
 
   const handleAddToCart = useCallback(async () => {
     if (!template.shopifyVariantId) {
-      window.location.href = `mailto:info@ums-solutions.com?subject=Purchase Request: ${template.name}&body=I would like to purchase ${template.name} (SAR ${template.price})`
+      setCheckoutOpen(true)
       return
     }
     setCartLoading(true)
@@ -63,7 +66,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
       const lineRes = await addToCart(cartId, template.shopifyVariantId)
       window.location.href = lineRes.data.cartLinesAdd.cart.checkoutUrl
     } catch {
-      window.location.href = `mailto:info@ums-solutions.com?subject=Purchase Request: ${template.name}`
+      setCheckoutOpen(true)
     } finally {
       setCartLoading(false)
     }
@@ -407,6 +410,17 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         )}
       </m.div>
     </m.div>
+
+      {/* ── Moyasar Checkout ── */}
+      <AnimatePresence>
+        {checkoutOpen && (
+          <MoyasarCheckout
+            key="moyasar-checkout"
+            template={template}
+            onClose={() => setCheckoutOpen(false)}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Lightbox ── */}
       <AnimatePresence>
