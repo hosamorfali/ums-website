@@ -17,57 +17,57 @@ export async function POST(req: NextRequest) {
   const body: OrderBody = await req.json()
   const { email, items, total } = body
 
-  const token  = process.env.SHOPIFY_ADMIN_API_TOKEN
   const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN
+  const token  = process.env.SHOPIFY_ADMIN_API_TOKEN
 
-  if (!token || !domain) {
-    return NextResponse.json({ error: 'Shopify Admin API not configured' }, { status: 500 })
+  if (!domain) {
+    return NextResponse.json({ error: 'Store domain not configured' }, { status: 500 })
+  }
+  if (!token) {
+    return NextResponse.json(
+      { error: 'SHOPIFY_ADMIN_API_TOKEN not set — run the one-time OAuth flow at /api/shopify/install' },
+      { status: 500 },
+    )
   }
 
-  const lineItems = items.map(item => {
-    if (item.shopifyVariantId) {
-      return {
-        variant_id: item.shopifyVariantId,
-        quantity:   1,
-      }
-    }
-    // Fallback: custom line item when variant ID not yet set
-    return {
-      title:    item.name,
-      price:    item.price.toFixed(2),
-      quantity: 1,
-    }
-  })
+  const lineItems = items.map(item =>
+    item.shopifyVariantId
+      ? { variant_id: item.shopifyVariantId, quantity: 1 }
+      : { title: item.name, price: item.price.toFixed(2), quantity: 1 },
+  )
 
   const orderPayload = {
     order: {
       email,
-      financial_status:            'paid',
-      send_receipt:                true,
-      send_fulfillment_receipt:    true,
-      line_items:                  lineItems,
-      note: `Paid via Moyasar. Total: SAR ${total}`,
+      financial_status:         'paid',
+      send_receipt:             true,
+      send_fulfillment_receipt: true,
+      line_items:               lineItems,
+      note:                     `Paid via Moyasar. Total: SAR ${total}`,
     },
   }
 
-  const res = await fetch(
+  const orderRes = await fetch(
     `https://${domain}/admin/api/2024-07/orders.json`,
     {
       method:  'POST',
       headers: {
-        'Content-Type':               'application/json',
-        'X-Shopify-Access-Token':     token,
+        'Content-Type':           'application/json',
+        'X-Shopify-Access-Token': token,
       },
       body: JSON.stringify(orderPayload),
     },
   )
 
-  const data = await res.json()
+  const orderData = await orderRes.json()
 
-  if (!res.ok) {
-    console.error('Shopify order creation failed:', data)
-    return NextResponse.json({ error: 'Order creation failed', details: data }, { status: res.status })
+  if (!orderRes.ok) {
+    console.error('Shopify order creation failed:', orderData)
+    return NextResponse.json(
+      { error: 'Order creation failed', detail: orderData },
+      { status: orderRes.status },
+    )
   }
 
-  return NextResponse.json({ orderId: data.order?.id })
+  return NextResponse.json({ orderId: orderData.order?.id })
 }

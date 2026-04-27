@@ -49,7 +49,7 @@ export const TEMPLATES: Template[] = [
       'Anchoring Strategy in competitive reality',
     ],
     pairsWith: ['swot-analysis'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45459176685747',
   },
   {
     id: 'swot-analysis',
@@ -70,7 +70,7 @@ export const TEMPLATES: Template[] = [
       'Evaluating a business, department, or project before a major decision',
     ],
     pairsWith: ['competitive-landscape'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45459175342259',
   },
   {
     id: 'strategy-house',
@@ -91,7 +91,7 @@ export const TEMPLATES: Template[] = [
       'Resetting annual priorities',
     ],
     pairsWith: ['strategic-roadmap'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45456480927923',
   },
   {
     id: 'strategic-roadmap',
@@ -112,7 +112,7 @@ export const TEMPLATES: Template[] = [
       'Sequencing initiatives across pillars and years',
     ],
     pairsWith: ['strategy-house'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45459178324147',
   },
   {
     id: 'initiative-card',
@@ -133,7 +133,7 @@ export const TEMPLATES: Template[] = [
       'Preparing Initiatives for Approval',
     ],
     pairsWith: ['initiative-prioritization'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45459161252019',
   },
   {
     id: 'initiative-prioritization',
@@ -154,7 +154,7 @@ export const TEMPLATES: Template[] = [
       'Making trade-off decisions',
     ],
     pairsWith: ['initiative-card'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45459446169779',
   },
   {
     id: 'kpis-success-metrics',
@@ -175,7 +175,7 @@ export const TEMPLATES: Template[] = [
       'Reporting performance to leadership or board',
     ],
     pairsWith: ['strategy-house'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45459019858099',
   },
   {
     id: 'strategic-positioning',
@@ -196,7 +196,7 @@ export const TEMPLATES: Template[] = [
       'Alignment before committing to a direction',
     ],
     pairsWith: ['strategy-house'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45456503865523',
   },
   {
     id: 'strategic-direction-kit',
@@ -215,7 +215,7 @@ export const TEMPLATES: Template[] = [
       'Organisations launching or refreshing their strategic direction',
     ],
     pairsWith: [],
-    shopifyVariantId: '',
+    shopifyVariantId: '45459185074355',
   },
 ]
 
