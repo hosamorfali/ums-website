@@ -152,10 +152,17 @@ export function StoreExperience() {
                 </div>
               </div>
 
-              {/* Statement — absolutely centred below the top bar */}
+              {/* Statement — centred below the top bar */}
               <p
-                className="absolute left-0 right-0 text-center text-xs leading-relaxed mx-auto"
-                style={{ color: '#888073', maxWidth: 480, top: 'calc(100% + 12px)', margin: '0 auto' }}
+                className="absolute text-center text-xs leading-relaxed"
+                style={{
+                  color: '#888073',
+                  top: 'calc(100% + 12px)',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 'max-content',
+                  maxWidth: 480,
+                }}
               >
                 You don&apos;t just get templates — you get the thinking behind them.
               </p>

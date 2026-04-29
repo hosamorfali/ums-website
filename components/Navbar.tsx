@@ -146,7 +146,15 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Cart icon */}
+          {/* Get in Touch CTA */}
+          <Link
+            href="/#contact"
+            className="text-sm font-semibold bg-ums-gold text-ums-bg px-5 py-2 rounded-md hover:opacity-90 transition-opacity"
+          >
+            Get in Touch
+          </Link>
+
+          {/* Cart icon — far right */}
           <button
             onClick={handleCartClick}
             className="relative flex items-center justify-center w-9 h-9 rounded-md hover:bg-white/5 transition-colors"
@@ -163,14 +171,6 @@ export default function Navbar() {
               </span>
             )}
           </button>
-
-          {/* Get in Touch CTA */}
-          <Link
-            href="/#contact"
-            className="text-sm font-semibold bg-ums-gold text-ums-bg px-5 py-2 rounded-md hover:opacity-90 transition-opacity"
-          >
-            Get in Touch
-          </Link>
         </div>
 
         {/* Mobile hamburger */}
