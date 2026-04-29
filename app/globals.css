@@ -73,3 +73,18 @@ body {
   outline: 2px solid #AB9C7D;
   outline-offset: 2px;
 }
+
+/* ── Mobile: homepage section breathing room ───────────── */
+/* Adds extra vertical padding between sections on mobile.  */
+/* max-width: 767px ensures desktop (≥768px) is untouched.  */
+@media (max-width: 767px) {
+  section {
+    padding-top:    4rem;
+    padding-bottom: 4rem;
+    padding-left:   1.25rem;
+    padding-right:  1.25rem;
+  }
+  section + section {
+    margin-top: 1rem;
+  }
+}

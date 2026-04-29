@@ -83,9 +83,12 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
     }, [])
 
     const initNodes = useCallback((W: number, H: number) => {
-      const topP = topPadRef.current
+      const topP     = topPadRef.current
+      const isMobile = W < 768
       nodesRef.current = templates.map(t => {
-        const r   = t.isKit ? KIT_RADIUS : REGULAR_RADIUS
+        const r = t.isKit
+          ? (isMobile ? 38 : KIT_RADIUS)
+          : (isMobile ? 26 : REGULAR_RADIUS)
         const pad = r + 40
         const x   = pad + Math.random() * (W - pad * 2)
         const y   = topP + pad + Math.random() * (H - topP - pad * 2)

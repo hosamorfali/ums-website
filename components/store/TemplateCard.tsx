@@ -44,6 +44,8 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
 
   const constraintsRef = useRef<HTMLDivElement>(null)
   const dragControls   = useDragControls()
+  const touchStartX    = useRef(0)
+  const touchStartY    = useRef(0)
 
   // Reset state when template changes
   const prevId = useRef(template.id)
@@ -97,6 +99,13 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   // ── Outer: fixed full-screen centering wrapper (opacity transition via AnimatePresence)
   return (
     <>
+    {/* Mobile-only backdrop — tap outside to dismiss */}
+    <div
+      className="fixed inset-0 md:hidden"
+      style={{ zIndex: 9998, background: 'rgba(0,0,0,0.45)' }}
+      onClick={onClose}
+    />
+
     <m.div
       ref={constraintsRef}
       initial={{ opacity: 0 }}
@@ -133,15 +142,17 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           pointerEvents: 'all',
         }}
       >
-        {/* Left nav arrow — sits outside card left edge, moves with card */}
+        {/* Left nav arrow — desktop only (outside card); hidden on mobile */}
         {onPrev && (
-          <button
-            onClick={e => { e.stopPropagation(); onPrev() }}
-            style={{ ...NAV_BTN, right: 'calc(100% + 12px)' }}
-            aria-label="Previous template"
-          >
-            <ChevronLeft size={18} />
-          </button>
+          <div className="hidden md:block">
+            <button
+              onClick={e => { e.stopPropagation(); onPrev() }}
+              style={{ ...NAV_BTN, right: 'calc(100% + 12px)' }}
+              aria-label="Previous template"
+            >
+              <ChevronLeft size={18} />
+            </button>
+          </div>
         )}
 
         {/* ── Card visual ── */}
@@ -158,13 +169,54 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             position:   'relative',
           }}
         >
-          {/* Drag handle — primary drag area */}
+          {/* Drag handle — primary drag area; also carries mobile swipe detection */}
           <div
             onPointerDown={e => dragControls.start(e)}
-            className="flex items-center justify-center pt-3 pb-1"
+            onTouchStart={e => {
+              touchStartX.current = e.touches[0].clientX
+              touchStartY.current = e.touches[0].clientY
+            }}
+            onTouchEnd={e => {
+              if (window.innerWidth >= 768) return
+              const dx = e.changedTouches[0].clientX - touchStartX.current
+              const dy = e.changedTouches[0].clientY - touchStartY.current
+              if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
+                if (dx < 0 && onNext) onNext()
+                if (dx > 0 && onPrev) onPrev()
+              }
+            }}
+            className="flex items-center justify-between px-4 pt-3 pb-1"
             style={{ borderBottom: '1px solid #2A2825', cursor: 'grab' }}
           >
+            {/* Mobile: prev arrow — left of handle */}
+            <div className="md:hidden w-7 flex justify-start">
+              {onPrev ? (
+                <button
+                  onPointerDown={e => e.stopPropagation()}
+                  onClick={e => { e.stopPropagation(); onPrev() }}
+                  style={{ color: '#888073', cursor: 'pointer' }}
+                  aria-label="Previous template"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+              ) : <span />}
+            </div>
+
             <div className="w-8 h-1 rounded-full bg-ums-border" />
+
+            {/* Mobile: next arrow — right of handle */}
+            <div className="md:hidden w-7 flex justify-end">
+              {onNext ? (
+                <button
+                  onPointerDown={e => e.stopPropagation()}
+                  onClick={e => { e.stopPropagation(); onNext() }}
+                  style={{ color: '#888073', cursor: 'pointer' }}
+                  aria-label="Next template"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              ) : <span />}
+            </div>
           </div>
 
           {/* Close button */}
@@ -393,15 +445,17 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           </div>
         </div>
 
-        {/* Right nav arrow — sits outside card right edge, moves with card */}
+        {/* Right nav arrow — desktop only (outside card); hidden on mobile */}
         {onNext && (
-          <button
-            onClick={e => { e.stopPropagation(); onNext() }}
-            style={{ ...NAV_BTN, left: 'calc(100% + 12px)' }}
-            aria-label="Next template"
-          >
-            <ChevronRight size={18} />
-          </button>
+          <div className="hidden md:block">
+            <button
+              onClick={e => { e.stopPropagation(); onNext() }}
+              style={{ ...NAV_BTN, left: 'calc(100% + 12px)' }}
+              aria-label="Next template"
+            >
+              <ChevronRight size={18} />
+            </button>
+          </div>
         )}
       </m.div>
     </m.div>

@@ -173,14 +173,32 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Mobile hamburger */}
-        <button
-          onClick={() => setMobileOpen(v => !v)}
-          className="md:hidden text-ums-muted hover:text-ums-gold transition-colors"
-          aria-label="Toggle menu"
-        >
-          {mobileOpen ? <X size={22} /> : <Menu size={22} />}
-        </button>
+        {/* Mobile: cart + hamburger */}
+        <div className="md:hidden flex items-center gap-2">
+          <button
+            onClick={handleCartClick}
+            className="relative flex items-center justify-center w-9 h-9 rounded-md hover:bg-white/5 transition-colors"
+            style={{ color: totalCount > 0 ? '#AB9C7D' : '#888073', cursor: 'pointer' }}
+            aria-label="Open cart"
+          >
+            <ShoppingCart size={17} />
+            {totalCount > 0 && (
+              <span
+                className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 rounded-full text-[9px] font-bold"
+                style={{ background: '#AB9C7D', color: '#1A1918' }}
+              >
+                {totalCount}
+              </span>
+            )}
+          </button>
+          <button
+            onClick={() => setMobileOpen(v => !v)}
+            className="text-ums-muted hover:text-ums-gold transition-colors"
+            aria-label="Toggle menu"
+          >
+            {mobileOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
+        </div>
       </nav>
 
       {/* Mobile menu */}

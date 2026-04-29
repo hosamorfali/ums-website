@@ -168,21 +168,20 @@ export function StoreExperience() {
               </p>
             </div>
 
-            {/* Ghost UMS logo — clickable back */}
-            <button
-              onClick={handleBack}
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 opacity-[0.06] hover:opacity-[0.13] transition-opacity"
-              aria-label="Back to categories"
+            {/* Ghost UMS logo — decorative only, not clickable */}
+            <div
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-10 opacity-[0.06] pointer-events-none"
+              aria-hidden="true"
             >
               <Image
                 src="/UMS Logo/UMS_logo_upscaled_faithful.png"
-                alt="UMS"
+                alt=""
                 width={220}
                 height={73}
                 className="h-12 w-auto"
                 unoptimized
               />
-            </button>
+            </div>
 
             {/* Canvas neural network */}
             <Level2Network
