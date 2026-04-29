@@ -161,8 +161,8 @@ export function MoyasarCheckout({ items, email, onClose, onSuccess }: Props) {
           </div>
 
           {/* Moyasar form — white surface so widget text/inputs are visible */}
-          <div className="p-6">
-            <div style={{ background: '#ffffff', borderRadius: 10, padding: '20px 16px' }}>
+          <div className="p-3 sm:p-6">
+            <div style={{ background: '#ffffff', borderRadius: 10, padding: '16px 12px' }}>
               <div className="mysr-form" />
             </div>
           </div>

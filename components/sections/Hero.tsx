@@ -226,12 +226,12 @@ export default function HeroSection() {
               <m.div
                 key={stat.label}
                 variants={itemVariants}
-                className="flex flex-col items-center gap-1 bg-ums-bg/80 px-6 py-5 backdrop-blur-sm"
+                className="flex flex-col items-center gap-1 bg-ums-bg/80 px-2 sm:px-6 py-4 sm:py-5 backdrop-blur-sm"
               >
-                <span className="text-xs uppercase tracking-[0.3em] text-ums-muted">
+                <span className="text-[9px] sm:text-xs uppercase tracking-[0.1em] sm:tracking-[0.3em] text-ums-muted leading-tight text-center">
                   {stat.label}
                 </span>
-                <span className="text-3xl font-bold text-ums-gold">
+                <span className="text-2xl sm:text-3xl font-bold text-ums-gold">
                   {stat.value}
                 </span>
               </m.div>

@@ -157,6 +157,19 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
 
         {/* ── Card visual ── */}
         <div
+          onTouchStart={e => {
+            touchStartX.current = e.touches[0].clientX
+            touchStartY.current = e.touches[0].clientY
+          }}
+          onTouchEnd={e => {
+            if (window.innerWidth >= 768) return
+            const dx = e.changedTouches[0].clientX - touchStartX.current
+            const dy = e.changedTouches[0].clientY - touchStartY.current
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
+              if (dx < 0 && onNext) onNext()
+              if (dx > 0 && onPrev) onPrev()
+            }
+          }}
           style={{
             width:      360,
             maxWidth:   'calc(100vw - 24px)',
@@ -169,32 +182,19 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             position:   'relative',
           }}
         >
-          {/* Drag handle — primary drag area; also carries mobile swipe detection */}
+          {/* Drag handle — desktop drag + mobile nav row */}
           <div
             onPointerDown={e => dragControls.start(e)}
-            onTouchStart={e => {
-              touchStartX.current = e.touches[0].clientX
-              touchStartY.current = e.touches[0].clientY
-            }}
-            onTouchEnd={e => {
-              if (window.innerWidth >= 768) return
-              const dx = e.changedTouches[0].clientX - touchStartX.current
-              const dy = e.changedTouches[0].clientY - touchStartY.current
-              if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
-                if (dx < 0 && onNext) onNext()
-                if (dx > 0 && onPrev) onPrev()
-              }
-            }}
-            className="flex items-center justify-between px-4 pt-3 pb-1"
+            className="flex items-center px-3 pt-3 pb-1"
             style={{ borderBottom: '1px solid #2A2825', cursor: 'grab' }}
           >
-            {/* Mobile: prev arrow — left of handle */}
-            <div className="md:hidden w-7 flex justify-start">
+            {/* Mobile: prev arrow */}
+            <div className="md:hidden flex-none w-8 flex justify-start">
               {onPrev ? (
                 <button
                   onPointerDown={e => e.stopPropagation()}
                   onClick={e => { e.stopPropagation(); onPrev() }}
-                  style={{ color: '#888073', cursor: 'pointer' }}
+                  style={{ color: '#888073', cursor: 'pointer', padding: 4 }}
                   aria-label="Previous template"
                 >
                   <ChevronLeft size={16} />
@@ -202,27 +202,41 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               ) : <span />}
             </div>
 
-            <div className="w-8 h-1 rounded-full bg-ums-border" />
+            {/* Centre: drag pill */}
+            <div className="flex-1 flex justify-center">
+              <div className="w-8 h-1 rounded-full bg-ums-border" />
+            </div>
 
-            {/* Mobile: next arrow — right of handle */}
-            <div className="md:hidden w-7 flex justify-end">
+            {/* Mobile: next arrow */}
+            <div className="md:hidden flex-none w-8 flex justify-end">
               {onNext ? (
                 <button
                   onPointerDown={e => e.stopPropagation()}
                   onClick={e => { e.stopPropagation(); onNext() }}
-                  style={{ color: '#888073', cursor: 'pointer' }}
+                  style={{ color: '#888073', cursor: 'pointer', padding: 4 }}
                   aria-label="Next template"
                 >
                   <ChevronRight size={16} />
                 </button>
               ) : <span />}
             </div>
+
+            {/* Mobile: X close — far right, in handle so it never overlaps arrows */}
+            <button
+              onPointerDown={e => e.stopPropagation()}
+              onClick={e => { e.stopPropagation(); onClose() }}
+              className="md:hidden flex-none flex items-center justify-center w-7 h-7 rounded-full hover:bg-ums-border/40 transition-colors ml-1"
+              style={{ color: '#888073', cursor: 'pointer' }}
+              aria-label="Close"
+            >
+              <X size={14} />
+            </button>
           </div>
 
-          {/* Close button */}
+          {/* Close button — desktop only (absolute positioned) */}
           <button
             onClick={onClose}
-            className="absolute top-3 right-3 z-10 flex items-center justify-center w-7 h-7 rounded-full hover:bg-ums-border/40 transition-colors"
+            className="hidden md:flex absolute top-3 right-3 z-10 items-center justify-center w-7 h-7 rounded-full hover:bg-ums-border/40 transition-colors"
             style={{ color: '#888073', cursor: 'pointer' }}
           >
             <X size={14} />

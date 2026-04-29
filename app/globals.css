@@ -74,6 +74,32 @@ body {
   outline-offset: 2px;
 }
 
+/* ── Moyasar: prevent card-brand icons overlapping the number input ── */
+/* The widget stacks brand icons inside the card field; on narrow screens  */
+/* they overflow over the typed number. Scale them down and clip overflow. */
+.mysr-form .form-group {
+  position: relative;
+}
+.mysr-form .card-brands,
+.mysr-form [class*="card-brand"],
+.mysr-form [class*="brands"] {
+  transform: scale(0.72);
+  transform-origin: right center;
+  max-width: 96px;
+  overflow: hidden;
+}
+@media (max-width: 767px) {
+  .mysr-form input[name="number"],
+  .mysr-form input[type="text"],
+  .mysr-form input[type="tel"] {
+    font-size: 14px !important;
+  }
+  /* Scale down the entire Moyasar form slightly on narrow screens */
+  .mysr-form {
+    font-size: 14px;
+  }
+}
+
 /* ── Mobile: homepage section breathing room ───────────── */
 /* Adds extra vertical padding between sections on mobile.  */
 /* max-width: 767px ensures desktop (≥768px) is untouched.  */
