@@ -45,14 +45,13 @@ export async function POST(req: NextRequest) {
     body: JSON.stringify({
       order: {
         email,
+        financial_status:         'pending',
         send_receipt:             false,   // suppress until transaction fires it
         send_fulfillment_receipt: true,
         line_items:               lineItems,
         note: paymentId
           ? `Paid via Moyasar. Payment ID: ${paymentId}. Total: SAR ${total}`
           : `Paid via Moyasar. Total: SAR ${total}`,
-        // Gateway label shown in Shopify admin
-        gateway: 'Moyasar',
       },
     }),
   })
@@ -78,28 +77,32 @@ export async function POST(req: NextRequest) {
     headers,
     body: JSON.stringify({
       transaction: {
-        kind:     'sale',
-        status:   'success',
-        amount:   total.toFixed(2),
-        currency: 'SAR',
-        gateway:  'Moyasar',
-        message:  paymentId ? `Moyasar payment ${paymentId}` : 'Moyasar payment',
+        kind:          'sale',
+        status:        'success',
+        amount:        total.toFixed(2),
+        currency:      'SAR',
+        gateway:       'manual',          // 'manual' = accepted for external payments
+        authorization: paymentId ?? '',   // Moyasar payment ID as auth reference
       },
     }),
   })
 
-  const txData = await txRes.json()
+  const txRaw = await txRes.text()
+  console.log('[Transaction] status:', txRes.status)
+  console.log('[Transaction] raw response:', txRaw)
+
+  let txData: Record<string, unknown> = {}
+  try { txData = JSON.parse(txRaw) } catch { /* raw already logged */ }
 
   if (!txRes.ok) {
-    console.error('[Transaction] failed:', txData)
-    // Order exists but not marked paid — return error so client knows
+    console.error('[Transaction] FAILED — order created but not paid')
     return NextResponse.json(
       { error: 'Order created but payment recording failed', orderId, detail: txData },
       { status: 500 },
     )
   }
 
-  console.log('[Transaction] recorded:', txData.transaction?.id, '| financial_status should now be paid')
+  console.log('[Transaction] SUCCESS — id:', (txData.transaction as Record<string,unknown>)?.id)
 
   return NextResponse.json({ orderId })
 }
