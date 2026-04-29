@@ -8,10 +8,10 @@ interface OrderItem {
 }
 
 interface OrderBody {
-  email:          string
-  items:          OrderItem[]
-  total:          number
-  paymentId?:     string   // Moyasar payment ID for reference
+  email:      string
+  items:      OrderItem[]
+  total:      number
+  paymentId?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
     'Content-Type':           'application/json',
     'X-Shopify-Access-Token': token,
   }
-  const base = `https://${domain}/admin/api/2024-07`
 
   const lineItems = items.map(item =>
     item.shopifyVariantId
@@ -36,25 +35,25 @@ export async function POST(req: NextRequest) {
       : { title: item.name, price: item.price.toFixed(2), quantity: 1 },
   )
 
-  // ── 1. Create order as PENDING — no financial_status set yet ─────────────
-  // Deliberately omit financial_status so Shopify treats it as pending.
-  // We'll record a transaction next, which properly fires orders/paid webhook.
-  const orderRes = await fetch(`${base}/orders.json`, {
-    method:  'POST',
-    headers,
-    body: JSON.stringify({
-      order: {
-        email,
-        financial_status:         'pending',
-        send_receipt:             false,   // suppress until transaction fires it
-        send_fulfillment_receipt: true,
-        line_items:               lineItems,
-        note: paymentId
-          ? `Paid via Moyasar. Payment ID: ${paymentId}. Total: SAR ${total}`
-          : `Paid via Moyasar. Total: SAR ${total}`,
-      },
-    }),
-  })
+  const orderRes = await fetch(
+    `https://${domain}/admin/api/2024-07/orders.json`,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({
+        order: {
+          email,
+          financial_status:         'paid',
+          send_receipt:             true,
+          send_fulfillment_receipt: true,
+          line_items:               lineItems,
+          note: paymentId
+            ? `Paid via Moyasar. Payment ID: ${paymentId}. Total: SAR ${total}`
+            : `Paid via Moyasar. Total: SAR ${total}`,
+        },
+      }),
+    },
+  )
 
   const orderData = await orderRes.json()
 
@@ -66,43 +65,8 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const orderId = orderData.order?.id as number
-  console.log('[Order] created:', orderId)
-
-  // ── 2. Record transaction — this fires the orders/paid webhook ───────────
-  // Digital Downloads subscribes to orders/paid to send download link emails.
-  // Setting financial_status directly on the order bypasses this webhook.
-  const txRes = await fetch(`${base}/orders/${orderId}/transactions.json`, {
-    method:  'POST',
-    headers,
-    body: JSON.stringify({
-      transaction: {
-        kind:          'sale',
-        status:        'success',
-        amount:        total.toFixed(2),
-        currency:      'SAR',
-        gateway:       'manual',          // 'manual' = accepted for external payments
-        authorization: paymentId ?? '',   // Moyasar payment ID as auth reference
-      },
-    }),
-  })
-
-  const txRaw = await txRes.text()
-  console.log('[Transaction] status:', txRes.status)
-  console.log('[Transaction] raw response:', txRaw)
-
-  let txData: Record<string, unknown> = {}
-  try { txData = JSON.parse(txRaw) } catch { /* raw already logged */ }
-
-  if (!txRes.ok) {
-    console.error('[Transaction] FAILED — order created but not paid')
-    return NextResponse.json(
-      { error: 'Order created but payment recording failed', orderId, detail: txData },
-      { status: 500 },
-    )
-  }
-
-  console.log('[Transaction] SUCCESS — id:', (txData.transaction as Record<string,unknown>)?.id)
+  const orderId = orderData.order?.id
+  console.log('[Order] created and paid:', orderId)
 
   return NextResponse.json({ orderId })
 }
