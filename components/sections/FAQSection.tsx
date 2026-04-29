@@ -7,7 +7,7 @@ import { ChevronDown } from 'lucide-react'
 const FAQS = [
   {
     q: 'What makes UMS Template Store different from other templates found online?',
-    a: 'UMS Template Store does not simply provide templates for use. Each template is handcrafted and logically structured to transfer knowledge of how a given framework applies in practice. Every purchase includes a full kit: contextual explanation of the slide logic, a completed example for review and learning, and a clean empty template ready for your use.',
+    a: 'UMS Template Store goes beyond giving empty templates for use. Each template is handcrafted and logically structured to transfer knowledge of how a given framework applies in practice. Every purchase includes a full kit: a contextual explanation of the slide logic, a completed example for review and learning, and a clean empty template ready for your use.',
   },
   {
     q: 'What will I get from the Template Store?',

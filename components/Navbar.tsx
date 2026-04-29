@@ -11,8 +11,8 @@ import { useCart } from '@/lib/cart-context'
 
 const NAV_LINKS = [
   { label: 'About',     href: '/#about' },
-  { label: 'Services',  href: '/#services' },
   { label: 'Expertise', href: '/#expertise' },
+  { label: 'Services',  href: '/#services' },
 ]
 
 export default function Navbar() {

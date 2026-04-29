@@ -43,10 +43,8 @@ const SQUARE_PX = Math.round(CANVAS_PX / Math.SQRT2)
 const OFFSET_PX = Math.round((SQUARE_PX - CANVAS_PX) / 2)
 
 function DiamondWave() {
-  const canvasRef  = useRef<HTMLCanvasElement>(null)
-  const outerRef   = useRef<HTMLDivElement>(null)
-  const mouseRef   = useRef({ nx: 0, ny: 0, active: false })
-
+  const canvasRef = useRef<HTMLCanvasElement>(null)
+  const outerRef  = useRef<HTMLDivElement>(null)
   useEffect(() => {
     const canvas = canvasRef.current
     const outer  = outerRef.current
@@ -69,9 +67,6 @@ function DiamondWave() {
 
     const draw = () => {
       t++
-      const { nx, ny, active } = mouseRef.current
-      const phaseNudge  = active ? (nx - 0.5) * Math.PI * 0.6 : 0
-      const vertNudge   = active ? (ny - 0.5) * 28            : 0
 
       ctx.fillStyle = '#1A1918'
       ctx.fillRect(0, 0, CANVAS_PX, CANVAS_PX)
@@ -80,8 +75,8 @@ function DiamondWave() {
         const sign = i % 2 === 0 ? 1 : -1
         ctx.beginPath()
         for (let x = 0; x <= CANVAS_PX; x += 2) {
-          const y = CANVAS_PX / 2 + vertNudge * (0.6 + i * 0.15)
-            + Math.sin(x * w.freq + t * w.speed + w.phase + phaseNudge * sign) * w.amp
+          const y = CANVAS_PX / 2
+            + Math.sin(x * w.freq + t * w.speed + w.phase) * w.amp * sign
             + Math.sin(x * w.freq * 0.5 + t * w.speed * 0.7) * (w.amp * 0.4)
           if (x === 0) ctx.moveTo(x, y)
           else         ctx.lineTo(x, y)
@@ -96,25 +91,8 @@ function DiamondWave() {
       animId = requestAnimationFrame(draw)
     }
 
-    const handleMouseMove = (e: MouseEvent) => {
-      const rect = outer.getBoundingClientRect()
-      mouseRef.current = {
-        nx: (e.clientX - rect.left) / rect.width,
-        ny: (e.clientY - rect.top)  / rect.height,
-        active: true,
-      }
-    }
-    const handleMouseLeave = () => { mouseRef.current.active = false }
-
-    outer.addEventListener('mousemove',  handleMouseMove)
-    outer.addEventListener('mouseleave', handleMouseLeave)
-
     animId = requestAnimationFrame(draw)
-    return () => {
-      cancelAnimationFrame(animId)
-      outer.removeEventListener('mousemove',  handleMouseMove)
-      outer.removeEventListener('mouseleave', handleMouseLeave)
-    }
+    return () => { cancelAnimationFrame(animId) }
   }, [])
 
   return (
