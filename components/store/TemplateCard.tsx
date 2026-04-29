@@ -39,7 +39,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const [lightboxIdx,  setLightboxIdx]  = useState(0)
   const [addedFlash,   setAddedFlash]   = useState(false)
 
-  const { addItem, items: cartItems } = useCart()
+  const { addItem, items: cartItems, openDrawer } = useCart()
   const inCart = cartItems.some(i => i.template.id === template.id)
 
   const constraintsRef = useRef<HTMLDivElement>(null)
@@ -57,9 +57,16 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
 
   const handleAddToCart = useCallback(() => {
     addItem(template)
+    // On mobile: close the card immediately and open the cart drawer
+    // so the two panels don't overlap and the cart is directly accessible.
+    if (typeof window !== 'undefined' && window.innerWidth < 768) {
+      onClose()
+      openDrawer()
+      return
+    }
     setAddedFlash(true)
     setTimeout(() => setAddedFlash(false), 1500)
-  }, [template, addItem])
+  }, [template, addItem, onClose, openDrawer])
 
   const pairedTemplates = template.pairsWith.map(id => getTemplateById(id)).filter(Boolean) as Template[]
   const kitTemplate     = template.isKit ? null : getTemplateById('strategic-direction-kit')
@@ -141,6 +148,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         <div
           style={{
             width:      360,
+            maxWidth:   'calc(100vw - 24px)',
             maxHeight:  '85vh',
             background: '#1A1918',
             border:     '1px solid #5D523C',

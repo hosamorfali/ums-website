@@ -226,8 +226,8 @@ export default function FourPillarsSection() {
           </p>
         </m.div>
 
-        {/* ── Mobile layout (< lg) — 2×2 grid ── */}
-        <div className="grid grid-cols-2 gap-x-8 gap-y-6 lg:hidden">
+        {/* ── Mobile layout (< lg) — 1 col on mobile, 2 cols on sm+ ── */}
+        <div className="grid grid-cols-1 gap-y-6 sm:grid-cols-2 sm:gap-x-8 lg:hidden">
           {pillars.map(p => (
             <MobilePillarCard key={p.name} pillar={p} />
           ))}

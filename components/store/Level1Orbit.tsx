@@ -53,102 +53,66 @@ export function Level1Orbit({ onSelect }: Props) {
 
   return (
     <div className="relative flex items-center justify-center w-full h-full">
-      {/* Heading — above orbit */}
-      <div
-        className="absolute left-0 right-0 flex items-center justify-center pointer-events-none"
-        style={{ top: 40, opacity: exiting ? 0 : 1, transition: 'opacity 0.5s' }}
-      >
-        <p
-          className="text-[10px] font-semibold uppercase tracking-[0.28em]"
-          style={{ color: '#888073' }}
-        >
-          Browse by Category. Find Your Framework.
-        </p>
-      </div>
+      {/*
+        scale-[0.6] on mobile keeps the 508px-wide orbit inside narrow screens.
+        sm:scale-100 restores full size at ≥640px. Desktop is never affected.
+      */}
+      <div className="scale-[0.6] sm:scale-100 origin-center w-full h-full relative">
 
-      {/* Orbit ring — centred at offset point */}
-      <div
-        className="absolute rounded-full border border-ums-border/25 pointer-events-none"
-        style={{
-          width:  ORBIT_RADIUS * 2,
-          height: ORBIT_RADIUS * 2,
-          top:    `calc(50% + ${ORBIT_OFFSET}px - ${ORBIT_RADIUS}px)`,
-          left:   `calc(50% - ${ORBIT_RADIUS}px)`,
-        }}
-      />
-
-      {/* UMS logo — at offset centre */}
-      <div
-        className="absolute z-20"
-        style={{
-          top:       `calc(50% + ${ORBIT_OFFSET}px)`,
-          left:      '50%',
-          transform: 'translate(-50%, -50%)',
-          opacity:   exiting ? 0.15 : 1,
-          transition:'opacity 0.6s',
-        }}
-      >
-        <Image
-          src="/UMS Logo/UMS_logo_upscaled_faithful.png"
-          alt="UMS"
-          width={160}
-          height={53}
-          className="h-11 w-auto"
-          unoptimized
-          priority
-        />
-      </div>
-
-      {/* Orbit nodes */}
-      {CATEGORIES.map((cat, i) => (
+        {/* Heading — above orbit */}
         <div
-          key={cat.id}
-          ref={el => { nodeRefs.current[i] = el }}
-          onClick={() => handleClick(cat, i)}
-          onMouseEnter={() => { if (cat.active) setHovered(i) }}
-          onMouseLeave={() => setHovered(null)}
+          className="absolute left-0 right-0 flex items-center justify-center pointer-events-none"
+          style={{ top: 40, opacity: exiting ? 0 : 1, transition: 'opacity 0.5s' }}
+        >
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.28em]"
+            style={{ color: '#888073' }}
+          >
+            Browse by Category. Find Your Framework.
+          </p>
+        </div>
+
+        {/* Orbit ring — centred at offset point */}
+        <div
+          className="absolute rounded-full border border-ums-border/25 pointer-events-none"
           style={{
-            position:   'absolute',
-            left:       '50%',
-            top:        `calc(50% + ${ORBIT_OFFSET}px)`,
-            width:      NODE_SIZE,
-            height:     NODE_SIZE,
-            marginLeft: -NODE_SIZE / 2,
-            marginTop:  -NODE_SIZE / 2,
-            cursor:     cat.active ? 'pointer' : 'default',
-            opacity:    exiting && exitNode?.index !== i ? 0 : 1,
-            transition: 'opacity 0.4s',
+            width:  ORBIT_RADIUS * 2,
+            height: ORBIT_RADIUS * 2,
+            top:    `calc(50% + ${ORBIT_OFFSET}px - ${ORBIT_RADIUS}px)`,
+            left:   `calc(50% - ${ORBIT_RADIUS}px)`,
+          }}
+        />
+
+        {/* UMS logo — at offset centre */}
+        <div
+          className="absolute z-20"
+          style={{
+            top:       `calc(50% + ${ORBIT_OFFSET}px)`,
+            left:      '50%',
+            transform: 'translate(-50%, -50%)',
+            opacity:   exiting ? 0.15 : 1,
+            transition:'opacity 0.6s',
           }}
         >
-          <div
-            className="w-full h-full rounded-full flex items-center justify-center p-2 text-center"
-            style={{
-              border: cat.active
-                ? `1.5px solid ${hovered === i ? '#AB9C7D' : '#5D523C'}`
-                : '1.5px dashed #3A342A',
-              background: cat.active && hovered === i ? 'rgba(171,156,125,0.12)' : '#1A1918',
-              boxShadow:  cat.active && hovered === i ? '0 0 18px rgba(171,156,125,0.35)' : 'none',
-              transition: 'all 0.25s',
-            }}
-          >
-            <span
-              className="text-[9px] font-semibold uppercase tracking-widest leading-tight"
-              style={{ color: cat.active ? (hovered === i ? '#AB9C7D' : '#888073') : '#3A342A' }}
-            >
-              {cat.name}
-              {!cat.active && <><br /><span className="text-[7px] normal-case tracking-normal opacity-60">Coming Soon</span></>}
-            </span>
-          </div>
+          <Image
+            src="/UMS Logo/UMS_logo_upscaled_faithful.png"
+            alt="UMS"
+            width={160}
+            height={53}
+            className="h-11 w-auto"
+            unoptimized
+            priority
+          />
         </div>
-      ))}
 
-      {/* Exit phantom — animates off-screen */}
-      <AnimatePresence>
-        {exitNode && (
-          <m.div
-            initial={{ x: exitNode.x, y: exitNode.y, opacity: 1 }}
-            animate={{ y: exitNode.y - 700, opacity: 0 }}
-            transition={{ duration: 0.65, ease: 'easeIn' }}
+        {/* Orbit nodes */}
+        {CATEGORIES.map((cat, i) => (
+          <div
+            key={cat.id}
+            ref={el => { nodeRefs.current[i] = el }}
+            onClick={() => handleClick(cat, i)}
+            onMouseEnter={() => { if (cat.active) setHovered(i) }}
+            onMouseLeave={() => setHovered(null)}
             style={{
               position:   'absolute',
               left:       '50%',
@@ -157,21 +121,65 @@ export function Level1Orbit({ onSelect }: Props) {
               height:     NODE_SIZE,
               marginLeft: -NODE_SIZE / 2,
               marginTop:  -NODE_SIZE / 2,
-              pointerEvents: 'none',
-              zIndex: 30,
+              cursor:     cat.active ? 'pointer' : 'default',
+              opacity:    exiting && exitNode?.index !== i ? 0 : 1,
+              transition: 'opacity 0.4s',
             }}
           >
             <div
               className="w-full h-full rounded-full flex items-center justify-center p-2 text-center"
-              style={{ border: '1.5px solid #AB9C7D', background: 'rgba(171,156,125,0.15)' }}
+              style={{
+                border: cat.active
+                  ? `1.5px solid ${hovered === i ? '#AB9C7D' : '#5D523C'}`
+                  : '1.5px dashed #3A342A',
+                background: cat.active && hovered === i ? 'rgba(171,156,125,0.12)' : '#1A1918',
+                boxShadow:  cat.active && hovered === i ? '0 0 18px rgba(171,156,125,0.35)' : 'none',
+                transition: 'all 0.25s',
+              }}
             >
-              <span className="text-[9px] font-semibold uppercase tracking-widest text-ums-gold leading-tight">
-                {CATEGORIES[exitNode.index].name}
+              <span
+                className="text-[9px] font-semibold uppercase tracking-widest leading-tight"
+                style={{ color: cat.active ? (hovered === i ? '#AB9C7D' : '#888073') : '#3A342A' }}
+              >
+                {cat.name}
+                {!cat.active && <><br /><span className="text-[7px] normal-case tracking-normal opacity-60">Coming Soon</span></>}
               </span>
             </div>
-          </m.div>
-        )}
-      </AnimatePresence>
+          </div>
+        ))}
+
+        {/* Exit phantom — animates off-screen */}
+        <AnimatePresence>
+          {exitNode && (
+            <m.div
+              initial={{ x: exitNode.x, y: exitNode.y, opacity: 1 }}
+              animate={{ y: exitNode.y - 700, opacity: 0 }}
+              transition={{ duration: 0.65, ease: 'easeIn' }}
+              style={{
+                position:   'absolute',
+                left:       '50%',
+                top:        `calc(50% + ${ORBIT_OFFSET}px)`,
+                width:      NODE_SIZE,
+                height:     NODE_SIZE,
+                marginLeft: -NODE_SIZE / 2,
+                marginTop:  -NODE_SIZE / 2,
+                pointerEvents: 'none',
+                zIndex: 30,
+              }}
+            >
+              <div
+                className="w-full h-full rounded-full flex items-center justify-center p-2 text-center"
+                style={{ border: '1.5px solid #AB9C7D', background: 'rgba(171,156,125,0.15)' }}
+              >
+                <span className="text-[9px] font-semibold uppercase tracking-widest text-ums-gold leading-tight">
+                  {CATEGORIES[exitNode.index].name}
+                </span>
+              </div>
+            </m.div>
+          )}
+        </AnimatePresence>
+
+      </div>{/* end mobile scale wrapper */}
     </div>
   )
 }
