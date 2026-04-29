@@ -46,7 +46,7 @@ export function CheckoutContent() {
     fetch('/api/create-order', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify({ email: data.email, items: data.items, total: data.total }),
+      body:    JSON.stringify({ email: data.email, items: data.items, total: data.total, paymentId }),
     })
       .then(res => res.json())
       .then(json => {
