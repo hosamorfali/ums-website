@@ -21,11 +21,12 @@ export type Template = {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: 'diagnostic',        name: 'Diagnostic Frameworks', active: true },
-  { id: 'strategy',          name: 'Strategy',              active: true },
-  { id: 'signature',         name: 'Signature Frameworks',  active: true },
-  { id: 'operating-model',   name: 'Operating Model',       active: false },
-  { id: 'project-management',name: 'Project Management',    active: false },
+  { id: 'diagnostic',         name: 'Diagnostic Frameworks',      active: true  },
+  { id: 'strategy',           name: 'Strategy Frameworks',        active: true  },
+  { id: 'signature',          name: 'Signature Frameworks',       active: false },
+  { id: 'operating-model',    name: 'Operating Model',            active: false },
+  { id: 'project-management', name: 'Project Management',         active: false },
+  { id: 'marketing-comms',    name: 'Marketing & Communication',  active: false },
 ]
 
 export const TEMPLATES: Template[] = [
