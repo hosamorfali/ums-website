@@ -69,7 +69,7 @@ export function MoyasarCheckout({ items, email, onClose, onSuccess }: Props) {
         description,
         publishable_api_key: apiKey,
         callback_url:        `${window.location.origin}/checkout`,
-        methods:             ['creditcard'],
+        methods:             ['creditcard', 'applepay'],
         apple_pay: {
           country: 'SA',
           label:   'UMS Template Store',
