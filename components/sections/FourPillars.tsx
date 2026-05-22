@@ -11,28 +11,28 @@ const pillars = [
     icon: Briefcase,
     name: 'Business Solutions & Management Consulting',
     description:
-      'From strategy design and benchmarking studies to foundational startup kits, we provide end-to-end management consulting services that translate your ambitions and challenges into a clear, structured blueprint for growth — alongside detailed proposals and bid submissions that accelerate your market penetration and winning rate.',
+      'From strategy design and benchmarking studies to foundational startup kits, we provide end-to-end management consulting services that turn complexity into a clear, structured blueprint for growth.',
     position: 'tl' as const,
   },
   {
     icon: Lightbulb,
     name: 'Innovative Solutions',
     description:
-      'Bridging traditional consulting with the power of AI, we combine structured thinking with the latest innovations to design digital tools and solutions — optimising your operations and building the competitive advantages that last.',
+      'Bridging traditional consulting with the power of AI, we combine structured thinking with the latest innovations to design digital tools and solutions that sharpen how you operate and compete.',
     position: 'tr' as const,
   },
   {
     icon: Zap,
     name: 'Rapid 360 Presentation Turnarounds',
     description:
-      'Operating as an agile SWAT team, we take your presentation and deliver a full 360 turnaround — fast, precise, and uncompromising. Powered by design principles, structured consulting thinking, and visual storytelling, we turn complexity into clarity every time.',
+      'Operating as an agile SWAT team, we take your presentation and deliver a full 360 turnaround — fast, precise, and uncompromising. Powered by design principles and consulting industry standards, we transform your ideas into boardroom-ready presentations.',
     position: 'bl' as const,
   },
   {
     icon: LayoutTemplate,
-    name: 'Tools & Templates Market',
+    name: 'UMS Template Store',
     description:
-      'Your on-demand library of consultant-grade slides and templates, ready to download and ready to use. From strategy frameworks and project management decks to startup kits and personal productivity tools — browse by category, buy what you need, and own it for life. One time purchase. Lifetime use.',
+      'Your on-demand library of consultant-grade templates and frameworks, ready to download and use. Browse by category, purchase what you need, and own it for life. One time purchase. Lifetime use.',
     position: 'br' as const,
   },
 ]
