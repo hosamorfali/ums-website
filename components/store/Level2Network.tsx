@@ -11,6 +11,8 @@ const SLOW_MULTIPLIER     = 0.2
 const REGULAR_RADIUS      = 36
 const KIT_RADIUS          = 52
 const CONNECTION_DISTANCE = 340
+// On mobile, keep nodes above the "Don't See What You Need?" sticky bar (~68px tall + gap)
+const MOBILE_BOTTOM_PAD   = 80
 
 interface NetworkNode {
   id: string
@@ -73,9 +75,10 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
       const cols  = Math.ceil(Math.sqrt(n))
       const rows  = Math.ceil(n / cols)
       const topP  = topPadRef.current + 20
+      const botP  = W < 768 ? MOBILE_BOTTOM_PAD : 0
       const hPad  = 80
       const cellW = (W - hPad * 2) / cols
-      const cellH = (H - topP - 40) / rows
+      const cellH = (H - topP - 40 - botP) / rows
       nodes.forEach((node, i) => {
         node.targetX = hPad + (i % cols) * cellW + cellW / 2
         node.targetY = topP + Math.floor(i / cols) * cellH + cellH / 2
@@ -85,13 +88,14 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
     const initNodes = useCallback((W: number, H: number) => {
       const topP     = topPadRef.current
       const isMobile = W < 768
+      const botP     = isMobile ? MOBILE_BOTTOM_PAD : 0
       nodesRef.current = templates.map(t => {
         const r = t.isKit
           ? (isMobile ? 38 : KIT_RADIUS)
           : (isMobile ? 26 : REGULAR_RADIUS)
         const pad = r + 40
         const x   = pad + Math.random() * (W - pad * 2)
-        const y   = topP + pad + Math.random() * (H - topP - pad * 2)
+        const y   = topP + pad + Math.random() * (H - topP - botP - pad * 2)
         return {
           id:        t.id,
           shortName: t.shortName,
@@ -149,15 +153,16 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
           })
         } else {
           // Velocity movement with boundary bounce + gentle damping
+          const botP = W < 768 ? MOBILE_BOTTOM_PAD : 0
           nodes.forEach(n => {
             n.vx *= 0.999
             n.vy *= 0.999
             n.x += n.vx * speed
             n.y += n.vy * speed
-            if (n.x < n.radius)         { n.x = n.radius;          n.vx =  Math.abs(n.vx) }
-            if (n.x > W - n.radius)     { n.x = W - n.radius;      n.vx = -Math.abs(n.vx) }
-            if (n.y < topP + n.radius)  { n.y = topP + n.radius;   n.vy =  Math.abs(n.vy) }
-            if (n.y > H - n.radius)     { n.y = H - n.radius;      n.vy = -Math.abs(n.vy) }
+            if (n.x < n.radius)              { n.x = n.radius;               n.vx =  Math.abs(n.vx) }
+            if (n.x > W - n.radius)          { n.x = W - n.radius;           n.vx = -Math.abs(n.vx) }
+            if (n.y < topP + n.radius)       { n.y = topP + n.radius;        n.vy =  Math.abs(n.vy) }
+            if (n.y > H - botP - n.radius)   { n.y = H - botP - n.radius;   n.vy = -Math.abs(n.vy) }
           })
 
           // Soft repulsion — gentle position nudge only, no velocity changes (prevents jitter)
@@ -305,10 +310,11 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
         const W = canvas.width
         const H = canvas.height
         const topP = topPadRef.current
+        const botP = W < 768 ? MOBILE_BOTTOM_PAD : 0
         nodesRef.current.forEach(n => {
           const pad = n.radius + 40
           n.targetX = pad + Math.random() * (W - pad * 2)
-          n.targetY = topP + pad + Math.random() * (H - topP - pad * 2)
+          n.targetY = topP + pad + Math.random() * (H - topP - botP - pad * 2)
           n.vx = (Math.random() - 0.5) * BASE_SPEED * 2
           n.vy = (Math.random() - 0.5) * BASE_SPEED * 2
         })
