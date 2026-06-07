@@ -23,10 +23,24 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Unique Management Solutions',
     description: 'Complexity into Clarity. Crafted to Impress.',
-    url: 'https://ums-solutions.com',
+    url: 'https://www.ums-solutions.com',
     siteName: 'Unique Management Solutions',
     locale: 'en_US',
     type: 'website',
+    images: [
+      {
+        url: 'https://www.ums-solutions.com/UMS_og_image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Unique Management Solutions',
+      },
+    ],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Unique Management Solutions',
+    description: 'Complexity into Clarity. Crafted to Impress.',
+    images: ['https://www.ums-solutions.com/UMS_og_image.png'],
   },
 }
 
