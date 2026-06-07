@@ -20,10 +20,6 @@ export const metadata: Metadata = {
   description:
     'Your trusted Saudi partner for turning complexity into clarity. Consultant-grade strategy templates, business solutions, and management consulting — crafted to impress.',
   metadataBase: new URL('https://ums-solutions.com'),
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-touch-icon.png',
-  },
   openGraph: {
     title: 'Unique Management Solutions',
     description: 'Complexity into Clarity. Crafted to Impress.',
