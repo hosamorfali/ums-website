@@ -11,7 +11,7 @@ const FAQS = [
   },
   {
     q: 'What will I get from the Template Store?',
-    a: 'The Template Store is designed to let you freely explore and browse by category and by individual template. You may purchase individual templates or full bundle kits, depending on your needs.',
+    a: 'The Template Store is designed to let you freely explore and browse by category and by individual template. You may purchase individual templates or full bundle kits, depending on your needs. All UMS templates are built in Microsoft PowerPoint and Microsoft Excel, ready to open, edit, and present without any additional software or design tools.',
   },
   {
     q: 'What categories does the Template Store cover?',
