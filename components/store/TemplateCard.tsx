@@ -4,7 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { m, useDragControls, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { X, ChevronLeft, ChevronRight, ChevronUp, ShoppingCart, ZoomIn } from 'lucide-react'
-import { getTemplateById, KIT_INCLUDES, KIT_OPENING, type Template } from '@/lib/store-data'
+import { getTemplateById, getKitForCategory, KIT_DETAILS, CATEGORIES, TEMPLATES, type Template } from '@/lib/store-data'
 import { useCart } from '@/lib/cart-context'
 
 interface Props {
@@ -71,7 +71,12 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   }, [template, addItem, onClose, openDrawer])
 
   const pairedTemplates = template.pairsWith.map(id => getTemplateById(id)).filter(Boolean) as Template[]
-  const kitTemplate     = template.isKit ? null : getTemplateById('strategic-direction-kit')
+  const kitTemplate     = template.isKit ? null : getKitForCategory(template.category)
+  const categoryLabel   = CATEGORIES.find(c => c.id === template.category)?.name ?? template.category
+  const kitContent      = KIT_DETAILS[template.isKit ? template.id : (kitTemplate?.id ?? '')]
+  const kitSavings      = template.isKit
+    ? TEMPLATES.filter(t => t.category === template.category && !t.isKit).reduce((s, t) => s + t.price, 0) - template.price
+    : 0
 
   const images  = template.images
   const prevImg = () => setImgIndex(i => (i - 1 + images.length) % images.length)
@@ -313,7 +318,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             {/* Category + name */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ums-gold mb-1.5">
-                {template.isKit ? 'Bundle Kit' : 'Strategy'}
+                {template.isKit ? 'Bundle Kit' : categoryLabel}
               </p>
               <h2 className="text-base font-bold text-white leading-snug">
                 {template.name}
@@ -322,17 +327,17 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
 
             {/* Kit opening / tagline */}
             {template.isKit ? (
-              <p className="text-xs leading-relaxed text-ums-muted">{KIT_OPENING}</p>
+              <p className="text-xs leading-relaxed text-ums-muted">{kitContent?.opening ?? template.tagline}</p>
             ) : (
               <p className="text-xs leading-relaxed text-ums-muted line-clamp-2">{template.tagline}</p>
             )}
 
             {/* Kit contents */}
-            {template.isKit && (
+            {template.isKit && kitContent && (
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ums-gold mb-2">Contains</p>
                 <ul className="flex flex-col gap-1">
-                  {KIT_INCLUDES.map(name => (
+                  {kitContent.includes.map(name => (
                     <li key={name} className="text-xs text-ums-muted flex items-start gap-1.5">
                       <span className="text-ums-gold mt-0.5">·</span>{name}
                     </li>
@@ -344,8 +349,8 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             {/* Price */}
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-bold text-ums-gold">SAR {template.price.toLocaleString()}</span>
-              {template.isKit && (
-                <span className="text-xs text-ums-muted">· Save SAR 600 vs buying individually</span>
+              {template.isKit && kitSavings > 0 && (
+                <span className="text-xs text-ums-muted">· Save SAR {kitSavings.toLocaleString()} vs buying individually</span>
               )}
             </div>
 
