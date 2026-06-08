@@ -228,7 +228,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Problem & Opportunity',
     category: 'startup',
     tagline: 'Clarify the problem, customer, opportunity, and timing before building the solution',
-    price: 1, // TEMP: testing only — revert to 200
+    price: 200,
     isKit: false,
     images: [
       '/images/Template Images/Startup Businesses/The Problem & Opportunity Statement/Problem_Opportunity_Statement_Preview_1.PNG',
@@ -514,7 +514,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Startup Business Kit',
     category: 'startup',
     tagline: 'Everything your business needs to validate the idea, build the foundation, plan the strategy, and prepare for launch',
-    price: 1, // TEMP: testing only — revert to 1900
+    price: 1900,
     isKit: true,
     images: [
       '/images/Template Images/Startup Businesses/The Startup Business Kit/Startup_Business_Kit_Preview_1.PNG',

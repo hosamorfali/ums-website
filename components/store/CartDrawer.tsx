@@ -5,14 +5,12 @@ import { AnimatePresence, m } from 'framer-motion'
 import Image from 'next/image'
 import { X, Trash2, ArrowRight, Package } from 'lucide-react'
 import { useCart } from '@/lib/cart-context'
-import { getTemplateById, type Template } from '@/lib/store-data'
+import { getTemplateById, getKitForCategory, TEMPLATES, type Template } from '@/lib/store-data'
 import { MoyasarCheckout } from './MoyasarCheckout'
 
 interface Props {
   onOpenTemplate: (templateId: string) => void
 }
-
-const KIT_ID = 'strategic-direction-kit'
 
 type Step = 'cart' | 'email' | 'paying'
 
@@ -23,8 +21,25 @@ export function CartDrawer({ onOpenTemplate }: Props) {
   const [emailErr, setEmailErr] = useState('')
 
   const cartItemIds = new Set(items.map(i => i.template.id))
-  const kitInCart   = cartItemIds.has(KIT_ID)
-  const kitTemplate = getTemplateById(KIT_ID)!
+
+  // Derive the relevant bundle kit from the dominant non-kit category in the cart
+  const categoryCount = new Map<string, number>()
+  items.forEach(item => {
+    if (!item.template.isKit) {
+      const cat = item.template.category
+      categoryCount.set(cat, (categoryCount.get(cat) ?? 0) + 1)
+    }
+  })
+  let dominantCategory: string | null = null
+  let maxCount = 0
+  categoryCount.forEach((count, cat) => {
+    if (count > maxCount) { maxCount = count; dominantCategory = cat }
+  })
+  const kitTemplate = dominantCategory ? (getKitForCategory(dominantCategory) ?? null) : null
+  const kitInCart   = kitTemplate ? cartItemIds.has(kitTemplate.id) : false
+  const kitSavings  = kitTemplate
+    ? TEMPLATES.filter(t => t.category === kitTemplate.category && !t.isKit).reduce((s, t) => s + t.price, 0) - kitTemplate.price
+    : 0
 
   const handleClose = useCallback(() => {
     closeDrawer()
@@ -183,7 +198,7 @@ export function CartDrawer({ onOpenTemplate }: Props) {
                         {!kitInCart && kitTemplate && (
                           <div className="px-5 py-4" style={{ borderBottom: '1px solid #2A2825' }}>
                             <button
-                              onClick={() => handleTemplateClick(KIT_ID)}
+                              onClick={() => handleTemplateClick(kitTemplate.id)}
                               className="w-full flex items-start gap-3 px-4 py-3 rounded-lg text-left transition-all hover:border-ums-gold/50"
                               style={{ border: '1px solid #5D523C', background: 'rgba(171,156,125,0.04)', cursor: 'pointer' }}
                             >
@@ -193,7 +208,7 @@ export function CartDrawer({ onOpenTemplate }: Props) {
                                 </p>
                                 <p className="text-xs font-semibold text-white leading-snug">{kitTemplate.name}</p>
                                 <p className="text-xs mt-1" style={{ color: '#888073' }}>
-                                  SAR {kitTemplate.price.toLocaleString()} · Save SAR 600 vs individual
+                                  SAR {kitTemplate.price.toLocaleString()}{kitSavings > 0 ? ` · Save SAR ${kitSavings.toLocaleString()} vs individual` : ''}
                                 </p>
                               </div>
                               <ArrowRight size={13} style={{ color: '#AB9C7D', marginTop: 2 }} />
