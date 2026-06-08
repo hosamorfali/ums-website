@@ -242,7 +242,7 @@ export const TEMPLATES: Template[] = [
       'Aligning the team around the problem, opportunity, and timing',
     ],
     pairsWith: ['startup-business-model-canvas'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562404208819',
   },
   {
     id: 'startup-business-model-canvas',
@@ -264,7 +264,7 @@ export const TEMPLATES: Template[] = [
       'Testing whether the business model is clear before planning execution',
     ],
     pairsWith: ['startup-gtm-strategy'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562404700339',
   },
   {
     id: 'startup-value-proposition-canvas',
@@ -286,7 +286,7 @@ export const TEMPLATES: Template[] = [
       'Improving messaging, positioning, and product-market fit',
     ],
     pairsWith: ['startup-target-audience-persona'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562404929715',
   },
   {
     id: 'startup-gtm-strategy',
@@ -308,7 +308,7 @@ export const TEMPLATES: Template[] = [
       'Choosing channels, messages, and customer acquisition priorities',
     ],
     pairsWith: ['startup-business-model-canvas'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562405028019',
   },
   {
     id: 'startup-target-audience-persona',
@@ -330,7 +330,7 @@ export const TEMPLATES: Template[] = [
       'Aligning messaging, positioning, and acquisition around a specific audience',
     ],
     pairsWith: ['startup-value-proposition-canvas'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562405355699',
   },
   {
     id: 'startup-competitive-landscape',
@@ -352,7 +352,7 @@ export const TEMPLATES: Template[] = [
       'Supporting positioning, pricing, and market entry decisions',
     ],
     pairsWith: ['startup-business-model-canvas'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562405454003',
   },
   {
     id: 'startup-strategy-house',
@@ -374,7 +374,7 @@ export const TEMPLATES: Template[] = [
       'Translating high-level ambition into clear strategic pillars',
     ],
     pairsWith: ['startup-business-model-canvas'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562405552307',
   },
   {
     id: 'startup-pricing-direction',
@@ -396,7 +396,7 @@ export const TEMPLATES: Template[] = [
       'Aligning pricing with value, cost, positioning, and go-to-market strategy',
     ],
     pairsWith: ['startup-revenue-model'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562405585075',
   },
   {
     id: 'startup-revenue-model',
@@ -418,7 +418,7 @@ export const TEMPLATES: Template[] = [
       'Stress-testing the commercial logic before financial modelling',
     ],
     pairsWith: ['startup-pricing-direction'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562406371507',
   },
   {
     id: 'startup-financial-projections',
@@ -440,7 +440,7 @@ export const TEMPLATES: Template[] = [
       'Stress-testing whether the business model can scale financially',
     ],
     pairsWith: ['startup-revenue-model'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562406502579',
   },
   {
     id: 'startup-investor-pitch',
@@ -462,7 +462,7 @@ export const TEMPLATES: Template[] = [
       'Aligning the business narrative before fundraising conversations',
     ],
     pairsWith: ['startup-business-model-canvas'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562406568115',
   },
   {
     id: 'startup-90-days-launch',
@@ -484,7 +484,7 @@ export const TEMPLATES: Template[] = [
       'Aligning the team around what must happen before and after launch',
     ],
     pairsWith: ['startup-gtm-strategy'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562406633651',
   },
   {
     id: 'startup-kpis-metrics',
@@ -506,7 +506,7 @@ export const TEMPLATES: Template[] = [
       'Creating a simple performance view for leadership and execution reviews',
     ],
     pairsWith: ['startup-business-model-canvas'],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562406699187',
   },
   {
     id: 'startup-business-kit',
@@ -524,7 +524,7 @@ export const TEMPLATES: Template[] = [
     ],
     builtFor: [],
     pairsWith: [],
-    shopifyVariantId: '',
+    shopifyVariantId: '45562408894643',
   },
 ]
 
