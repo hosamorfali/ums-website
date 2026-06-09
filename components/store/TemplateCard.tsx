@@ -46,8 +46,10 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const dragControls    = useDragControls()
   const touchStartX     = useRef(0)
   const touchStartY     = useRef(0)
+  const isPinching      = useRef(false)
   const lbTouchStartX   = useRef(0)
   const lbTouchStartY   = useRef(0)
+  const lbIsPinching    = useRef(false)
 
   // Reset state when template changes
   const prevId = useRef(template.id)
@@ -165,11 +167,17 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         {/* ── Card visual ── */}
         <div
           onTouchStart={e => {
+            if (e.touches.length > 1) { isPinching.current = true; return }
+            isPinching.current = false
             touchStartX.current = e.touches[0].clientX
             touchStartY.current = e.touches[0].clientY
           }}
           onTouchEnd={e => {
             if (window.innerWidth >= 768) return
+            if (isPinching.current) {
+              if (e.touches.length === 0) isPinching.current = false
+              return
+            }
             const dx = e.changedTouches[0].clientX - touchStartX.current
             const dy = e.changedTouches[0].clientY - touchStartY.current
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
@@ -492,10 +500,16 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             transition={{ duration: 0.18 }}
             onClick={() => setLightboxOpen(false)}
             onTouchStart={e => {
+              if (e.touches.length > 1) { lbIsPinching.current = true; return }
+              lbIsPinching.current = false
               lbTouchStartX.current = e.touches[0].clientX
               lbTouchStartY.current = e.touches[0].clientY
             }}
             onTouchEnd={e => {
+              if (lbIsPinching.current) {
+                if (e.touches.length === 0) lbIsPinching.current = false
+                return
+              }
               const dx = e.changedTouches[0].clientX - lbTouchStartX.current
               const dy = e.changedTouches[0].clientY - lbTouchStartY.current
               if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {

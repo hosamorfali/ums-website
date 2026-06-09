@@ -12,7 +12,7 @@ function generateStars(count: number, color: string): string {
   return s.join(', ')
 }
 
-export function StarsBackground() {
+export function StarsBackground({ paused = false }: { paused?: boolean }) {
   const [s1, setS1] = useState('')
   const [s2, setS2] = useState('')
   const [s3, setS3] = useState('')
@@ -24,7 +24,7 @@ export function StarsBackground() {
   }, [])
 
   const dot = (size: number, shadow: string, duration: string) => (
-    <div style={{ animation: `stars-scroll-${size} ${duration} linear infinite` }}>
+    <div style={{ animation: `stars-scroll-${size} ${duration} linear infinite`, animationPlayState: paused ? 'paused' : 'running' }}>
       <div style={{ position: 'absolute', top: 0, left: 0, width: size, height: size, borderRadius: '50%', background: 'transparent', boxShadow: shadow }} />
       <div style={{ position: 'absolute', top: 2000, left: 0, width: size, height: size, borderRadius: '50%', background: 'transparent', boxShadow: shadow }} />
     </div>

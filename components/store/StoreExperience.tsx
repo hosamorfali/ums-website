@@ -87,7 +87,7 @@ export function StoreExperience() {
       className="relative w-full overflow-hidden bg-ums-bg"
       style={{ height: 'calc(100vh - 64px)' }}
     >
-      <StarsBackground />
+      <StarsBackground paused={selectedTemplate !== null} />
 
       {/* ── Level 1 — Category Orbit ── */}
       <AnimatePresence>
