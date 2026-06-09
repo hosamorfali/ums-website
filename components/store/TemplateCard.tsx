@@ -204,16 +204,18 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             className="flex items-center px-3 pt-3 pb-1"
             style={{ borderBottom: '1px solid #2A2825', cursor: 'grab' }}
           >
-            {/* Mobile: prev arrow */}
-            <div className="md:hidden flex-none w-8 flex justify-start">
+            {/* Mobile: prev arrow + label */}
+            <div className="md:hidden flex-none flex justify-start">
               {onPrev ? (
                 <button
                   onPointerDown={e => e.stopPropagation()}
                   onClick={e => { e.stopPropagation(); onPrev() }}
+                  className="flex items-center gap-1"
                   style={{ color: '#888073', cursor: 'pointer', padding: 4 }}
                   aria-label="Previous template"
                 >
-                  <ChevronLeft size={16} />
+                  <ChevronLeft size={14} />
+                  <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Prev Template</span>
                 </button>
               ) : <span />}
             </div>
@@ -223,16 +225,18 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               <div className="w-8 h-1 rounded-full bg-ums-border" />
             </div>
 
-            {/* Mobile: next arrow */}
-            <div className="md:hidden flex-none w-8 flex justify-end">
+            {/* Mobile: next arrow + label */}
+            <div className="md:hidden flex-none flex justify-end">
               {onNext ? (
                 <button
                   onPointerDown={e => e.stopPropagation()}
                   onClick={e => { e.stopPropagation(); onNext() }}
+                  className="flex items-center gap-1"
                   style={{ color: '#888073', cursor: 'pointer', padding: 4 }}
                   aria-label="Next template"
                 >
-                  <ChevronRight size={16} />
+                  <span style={{ fontSize: 10, fontWeight: 500, letterSpacing: '0.08em', textTransform: 'uppercase' }}>Next Template</span>
+                  <ChevronRight size={14} />
                 </button>
               ) : <span />}
             </div>
