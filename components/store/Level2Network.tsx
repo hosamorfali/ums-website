@@ -54,6 +54,7 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
     const animRef       = useRef<number>(0)
     const scatteringRef = useRef(false)
     const scatterEndRef = useRef(0)
+    const cssSizeRef    = useRef({ w: 0, h: 0 })
 
     slowedRef.current   = slowed
     selectedRef.current = selectedId
@@ -117,17 +118,24 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
       if (!ctx) return
 
       const resize = () => {
-        canvas.width  = canvas.offsetWidth
-        canvas.height = canvas.offsetHeight
-        if (nodesRef.current.length === 0) initNodes(canvas.width, canvas.height)
-        computeGridTargets(canvas.width, canvas.height)
+        const dpr = window.devicePixelRatio || 1
+        const w   = canvas.offsetWidth
+        const h   = canvas.offsetHeight
+        cssSizeRef.current = { w, h }
+        canvas.width  = Math.round(w * dpr)
+        canvas.height = Math.round(h * dpr)
+        // Scale all draw calls to physical pixels — fixes blurry nodes on HiDPI screens
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+        if (nodesRef.current.length === 0) initNodes(w, h)
+        computeGridTargets(w, h)
       }
       resize()
       window.addEventListener('resize', resize)
 
       const draw = () => {
-        const W     = canvas.width
-        const H     = canvas.height
+        const W     = cssSizeRef.current.w
+        const H     = cssSizeRef.current.h
+        if (W === 0 || H === 0) { animRef.current = requestAnimationFrame(draw); return }
         const speed = slowedRef.current ? BASE_SPEED * SLOW_MULTIPLIER : BASE_SPEED
         const isGrid = viewModeRef.current === 'grid'
         const topP   = topPadRef.current
@@ -266,8 +274,8 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
 
       const handleMouseMove = (e: MouseEvent) => {
         const rect = canvas.getBoundingClientRect()
-        const mx = (e.clientX - rect.left) * (canvas.width  / rect.width)
-        const my = (e.clientY - rect.top)  * (canvas.height / rect.height)
+        const mx = e.clientX - rect.left
+        const my = e.clientY - rect.top
         let hit: string | null = null
         nodesRef.current.forEach(n => {
           if (Math.sqrt((mx - n.x) ** 2 + (my - n.y) ** 2) <= n.radius) hit = n.id
@@ -278,8 +286,8 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
 
       const handleClick = (e: MouseEvent) => {
         const rect = canvas.getBoundingClientRect()
-        const mx = (e.clientX - rect.left) * (canvas.width  / rect.width)
-        const my = (e.clientY - rect.top)  * (canvas.height / rect.height)
+        const mx = e.clientX - rect.left
+        const my = e.clientY - rect.top
         nodesRef.current.forEach(n => {
           if (Math.sqrt((mx - n.x) ** 2 + (my - n.y) ** 2) <= n.radius) {
             const t = templates.find(t => t.id === n.id)
@@ -304,11 +312,11 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
       const canvas = canvasRef.current
       if (!canvas || canvas.width === 0) return
       if (viewMode === 'grid') {
-        computeGridTargets(canvas.width, canvas.height)
+        computeGridTargets(cssSizeRef.current.w, cssSizeRef.current.h)
       } else {
         // Scatter nodes to random positions, then resume drift after 900ms
-        const W = canvas.width
-        const H = canvas.height
+        const W = cssSizeRef.current.w
+        const H = cssSizeRef.current.h
         const topP = topPadRef.current
         const botP = W < 768 ? MOBILE_BOTTOM_PAD : 0
         nodesRef.current.forEach(n => {

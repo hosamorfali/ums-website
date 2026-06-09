@@ -19,7 +19,7 @@ export function StoreExperience() {
   const [view,             setView]             = useState<'L1' | 'L2'>('L1')
   const [categoryId,       setCategoryId]       = useState<string | null>(null)
   const [selectedTemplate, setSelectedTemplate] = useState<Template | null>(null)
-  const [viewMode,         setViewMode]         = useState<'orbit' | 'grid'>('orbit')
+  const [viewMode,         setViewMode]         = useState<'orbit' | 'grid'>('grid')
   const networkRef = useRef<Level2NetworkHandle>(null)
 
   const templates    = useMemo(
@@ -30,7 +30,7 @@ export function StoreExperience() {
 
   const handleSelectCategory = useCallback((id: string) => {
     setCategoryId(id)
-    setViewMode('orbit')
+    setViewMode('grid')
     setView('L2')
   }, [])
 
@@ -112,7 +112,8 @@ export function StoreExperience() {
               <div className="flex items-center justify-between">
                 <button
                   onClick={handleBack}
-                  className="flex items-center gap-1.5 text-xs text-ums-muted hover:text-ums-gold transition-colors"
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 shadow-lg cursor-pointer"
+                  style={{ background: '#AB9C7D', color: '#1A1918' }}
                 >
                   <ArrowLeft size={13} />
                   All Categories
@@ -130,24 +131,24 @@ export function StoreExperience() {
                   <button
                     onClick={() => setViewMode('orbit')}
                     title="Floating View"
-                    className="flex items-center justify-center w-6 h-6 rounded-full transition-all"
+                    className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full transition-all"
                     style={{
                       background:  viewMode === 'orbit' ? '#AB9C7D' : 'transparent',
                       color:       viewMode === 'orbit' ? '#1A1918' : '#888073',
                     }}
                   >
-                    <Network size={12} />
+                    <Network size={12} className="md:w-4 md:h-4" />
                   </button>
                   <button
                     onClick={() => setViewMode('grid')}
                     title="Grid view"
-                    className="flex items-center justify-center w-6 h-6 rounded-full transition-all"
+                    className="flex items-center justify-center w-6 h-6 md:w-8 md:h-8 rounded-full transition-all"
                     style={{
                       background: viewMode === 'grid' ? '#AB9C7D' : 'transparent',
                       color:      viewMode === 'grid' ? '#1A1918' : '#888073',
                     }}
                   >
-                    <LayoutGrid size={12} />
+                    <LayoutGrid size={12} className="md:w-4 md:h-4" />
                   </button>
                 </div>
               </div>
