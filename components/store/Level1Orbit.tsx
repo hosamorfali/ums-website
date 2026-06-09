@@ -75,7 +75,7 @@ export function Level1Orbit({ onSelect }: Props) {
           style={{ top: 40, opacity: exiting ? 0 : 1, transition: 'opacity 0.5s' }}
         >
           <p
-            className="text-[13px] font-semibold uppercase tracking-[0.28em]"
+            className="text-[13px] font-semibold uppercase tracking-[0.28em] whitespace-nowrap"
             style={{ color: '#888073' }}
           >
             Browse by Category. Find Your Framework.
