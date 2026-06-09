@@ -25,9 +25,9 @@ const NAV_BTN: React.CSSProperties = {
   width:      40,
   height:     40,
   borderRadius: '50%',
-  background: 'rgba(26,25,24,0.88)',
-  border:     '1px solid #5D523C',
-  color:      '#AB9C7D',
+  background: '#AB9C7D',
+  border:     'none',
+  color:      '#1A1918',
   cursor:     'pointer',
   zIndex:     10,
 }

@@ -118,7 +118,7 @@ export function StoreExperience() {
           >
             {/* Top bar */}
             <div className="absolute top-0 left-0 right-0 z-10 px-8 pt-7">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between relative">
                 <button
                   onClick={handleBack}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-full text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 shadow-lg cursor-pointer"
@@ -128,7 +128,8 @@ export function StoreExperience() {
                   All Categories
                 </button>
 
-                <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-ums-gold">
+                {/* Absolutely centred so it stays centred regardless of sibling widths */}
+                <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] md:text-sm font-semibold uppercase tracking-[0.22em] text-ums-gold whitespace-nowrap pointer-events-none">
                   {categoryName}
                 </p>
 

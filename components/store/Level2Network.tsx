@@ -26,6 +26,7 @@ interface NetworkNode {
   targetX: number
   targetY: number
   currentScale: number
+  glowIntensity: number
 }
 
 interface Props {
@@ -112,6 +113,7 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
           targetX:      x,
           targetY:      y,
           currentScale: 1,
+          glowIntensity: 0,
         }
       })
     }, [templates])
@@ -230,18 +232,21 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
           n.currentScale += (targetScale - n.currentScale) * 0.14
           const drawR = n.radius * n.currentScale
 
-          // Glow ring — on desktop the bloom intensity follows the scale lerp for a smooth transition
-          const glowIntensity = isDesktop ? Math.max(0, (n.currentScale - 1.0) / 0.12) : 0
-          if (isFocused || isHovered || isSelected || glowIntensity > 0.01) {
+          // Glow — snaps on immediately on hover/select, fades off smoothly (desktop only).
+          // shadowColor is always opaque; intensity is controlled via shadowBlur only.
+          // (rgba alpha on shadowColor was the root cause of the invisible glow bug.)
+          const glowTarget = isDesktop && (isHovered || isSelected) ? 1 : 0
+          n.glowIntensity = glowTarget > n.glowIntensity
+            ? glowTarget                                                 // snap on instantly
+            : n.glowIntensity + (glowTarget - n.glowIntensity) * 0.15   // lerp off smoothly
+          if (isFocused || n.glowIntensity > 0.02) {
             ctx.save()
-            ctx.shadowColor = isDesktop ? `rgba(171,156,125,${glowIntensity})` : '#AB9C7D'
-            ctx.shadowBlur  = isFocused ? 28 : (isDesktop ? 6 + glowIntensity * 24 : 16)
+            ctx.shadowColor = '#AB9C7D'
+            ctx.shadowBlur  = isFocused ? 28 : n.glowIntensity * 32
             ctx.beginPath()
             ctx.arc(n.x, n.y, drawR, 0, Math.PI * 2)
-            ctx.strokeStyle = isDesktop
-              ? `rgba(171,156,125,${0.45 + glowIntensity * 0.55})`
-              : '#AB9C7D'
-            ctx.lineWidth = 2
+            ctx.strokeStyle = '#AB9C7D'
+            ctx.lineWidth   = 2
             ctx.stroke()
             ctx.restore()
           }
