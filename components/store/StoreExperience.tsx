@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback, useMemo } from 'react'
+import { useState, useRef, useCallback, useMemo, useEffect } from 'react'
 import { AnimatePresence, m } from 'framer-motion'
 import Image from 'next/image'
 import { ArrowLeft, LayoutGrid, Network } from 'lucide-react'
@@ -47,6 +47,15 @@ export function StoreExperience() {
   const handleCloseCard = useCallback(() => {
     setSelectedTemplate(null)
   }, [])
+
+  // Escape key closes the template card (desktop keyboards only)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && selectedTemplate) handleCloseCard()
+    }
+    document.addEventListener('keydown', onKey)
+    return () => document.removeEventListener('keydown', onKey)
+  }, [selectedTemplate, handleCloseCard])
 
   const handlePairsWithClick = useCallback((templateId: string) => {
     const t = templates.find(t => t.id === templateId)
@@ -193,6 +202,7 @@ export function StoreExperience() {
               selectedId={selectedTemplate?.id ?? null}
               viewMode={viewMode}
               topPadding={TOP_PADDING}
+              onBackgroundClick={selectedTemplate ? handleCloseCard : undefined}
             />
           </m.div>
         )}

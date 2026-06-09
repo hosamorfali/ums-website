@@ -8,8 +8,8 @@ import type { Template } from '@/lib/store-data'
 
 const BASE_SPEED          = 0.35
 const SLOW_MULTIPLIER     = 0.2
-const REGULAR_RADIUS      = 36
-const KIT_RADIUS          = 52
+const REGULAR_RADIUS      = 44
+const KIT_RADIUS          = 64
 const CONNECTION_DISTANCE = 340
 // On mobile, keep nodes above the "Don't See What You Need?" sticky bar (~68px tall + gap)
 const MOBILE_BOTTOM_PAD   = 80
@@ -25,15 +25,17 @@ interface NetworkNode {
   radius: number
   targetX: number
   targetY: number
+  currentScale: number
 }
 
 interface Props {
-  templates:  Template[]
-  slowed:     boolean
-  onNodeClick:(t: Template) => void
-  selectedId: string | null
-  viewMode:   'orbit' | 'grid'
-  topPadding: number
+  templates:         Template[]
+  slowed:            boolean
+  onNodeClick:       (t: Template) => void
+  selectedId:        string | null
+  viewMode:          'orbit' | 'grid'
+  topPadding:        number
+  onBackgroundClick?: () => void
 }
 
 export interface Level2NetworkHandle {
@@ -41,25 +43,27 @@ export interface Level2NetworkHandle {
 }
 
 const Level2Network = forwardRef<Level2NetworkHandle, Props>(
-  ({ templates, slowed, onNodeClick, selectedId, viewMode, topPadding }, ref) => {
-    const canvasRef   = useRef<HTMLCanvasElement>(null)
-    const nodesRef    = useRef<NetworkNode[]>([])
-    const hoveredRef  = useRef<string | null>(null)
-    const focusedRef  = useRef<string | null>(null)
-    const focusTimer  = useRef<ReturnType<typeof setTimeout> | null>(null)
-    const slowedRef   = useRef(slowed)
-    const selectedRef = useRef(selectedId)
-    const viewModeRef = useRef(viewMode)
-    const topPadRef   = useRef(topPadding)
-    const animRef       = useRef<number>(0)
-    const scatteringRef = useRef(false)
-    const scatterEndRef = useRef(0)
-    const cssSizeRef    = useRef({ w: 0, h: 0 })
+  ({ templates, slowed, onNodeClick, selectedId, viewMode, topPadding, onBackgroundClick }, ref) => {
+    const canvasRef            = useRef<HTMLCanvasElement>(null)
+    const nodesRef             = useRef<NetworkNode[]>([])
+    const hoveredRef           = useRef<string | null>(null)
+    const focusedRef           = useRef<string | null>(null)
+    const focusTimer           = useRef<ReturnType<typeof setTimeout> | null>(null)
+    const slowedRef            = useRef(slowed)
+    const selectedRef          = useRef(selectedId)
+    const viewModeRef          = useRef(viewMode)
+    const topPadRef            = useRef(topPadding)
+    const animRef              = useRef<number>(0)
+    const scatteringRef        = useRef(false)
+    const scatterEndRef        = useRef(0)
+    const cssSizeRef           = useRef({ w: 0, h: 0 })
+    const onBackgroundClickRef = useRef(onBackgroundClick)
 
-    slowedRef.current   = slowed
-    selectedRef.current = selectedId
-    viewModeRef.current = viewMode
-    topPadRef.current   = topPadding
+    slowedRef.current            = slowed
+    selectedRef.current          = selectedId
+    viewModeRef.current          = viewMode
+    topPadRef.current            = topPadding
+    onBackgroundClickRef.current = onBackgroundClick
 
     useImperativeHandle(ref, () => ({
       focusNode: (id: string) => {
@@ -98,15 +102,16 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
         const x   = pad + Math.random() * (W - pad * 2)
         const y   = topP + pad + Math.random() * (H - topP - botP - pad * 2)
         return {
-          id:        t.id,
-          shortName: t.shortName,
-          isKit:     t.isKit,
+          id:           t.id,
+          shortName:    t.shortName,
+          isKit:        t.isKit,
           x, y,
-          vx: (Math.random() - 0.5) * BASE_SPEED * 2,
-          vy: (Math.random() - 0.5) * BASE_SPEED * 2,
-          radius:  r,
-          targetX: x,
-          targetY: y,
+          vx:           (Math.random() - 0.5) * BASE_SPEED * 2,
+          vy:           (Math.random() - 0.5) * BASE_SPEED * 2,
+          radius:       r,
+          targetX:      x,
+          targetY:      y,
+          currentScale: 1,
         }
       })
     }, [templates])
@@ -214,10 +219,16 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
         }
 
         // Nodes
+        const isDesktop = W >= 768
         nodes.forEach(n => {
           const isHovered  = n.id === hoveredRef.current
           const isFocused  = n.id === focusedRef.current
           const isSelected = n.id === selectedRef.current
+
+          // Smooth scale — desktop only; persists while node is hovered or selected
+          const targetScale = isDesktop && (isHovered || isSelected) ? 1.12 : 1.0
+          n.currentScale += (targetScale - n.currentScale) * 0.14
+          const drawR = n.radius * n.currentScale
 
           // Glow ring
           if (isFocused || isHovered || isSelected) {
@@ -225,7 +236,7 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
             ctx.shadowColor = '#AB9C7D'
             ctx.shadowBlur  = isFocused ? 28 : 16
             ctx.beginPath()
-            ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2)
+            ctx.arc(n.x, n.y, drawR, 0, Math.PI * 2)
             ctx.strokeStyle = '#AB9C7D'
             ctx.lineWidth   = 2
             ctx.stroke()
@@ -234,7 +245,7 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
 
           // Fill
           ctx.beginPath()
-          ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2)
+          ctx.arc(n.x, n.y, drawR, 0, Math.PI * 2)
           ctx.fillStyle = n.isKit ? '#AB9C7D' : '#1A1918'
           ctx.fill()
 
@@ -244,7 +255,7 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
           ctx.stroke()
 
           // Label with word-wrap
-          const maxW = n.radius * 1.7
+          const maxW = drawR * 1.7
           const fSize = n.isKit ? 9.5 : 8.5
           ctx.font         = `bold ${fSize}px ui-sans-serif,system-ui,sans-serif`
           ctx.textAlign    = 'center'
@@ -278,7 +289,7 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
         const my = e.clientY - rect.top
         let hit: string | null = null
         nodesRef.current.forEach(n => {
-          if (Math.sqrt((mx - n.x) ** 2 + (my - n.y) ** 2) <= n.radius) hit = n.id
+          if (Math.sqrt((mx - n.x) ** 2 + (my - n.y) ** 2) <= n.radius * n.currentScale) hit = n.id
         })
         hoveredRef.current  = hit
         canvas.style.cursor = hit ? 'pointer' : 'default'
@@ -288,12 +299,17 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
         const rect = canvas.getBoundingClientRect()
         const mx = e.clientX - rect.left
         const my = e.clientY - rect.top
+        let hit = false
         nodesRef.current.forEach(n => {
-          if (Math.sqrt((mx - n.x) ** 2 + (my - n.y) ** 2) <= n.radius) {
+          if (Math.sqrt((mx - n.x) ** 2 + (my - n.y) ** 2) <= n.radius * n.currentScale) {
             const t = templates.find(t => t.id === n.id)
-            if (t) onNodeClick(t)
+            if (t) { onNodeClick(t); hit = true }
           }
         })
+        // Background click on desktop closes the open template card
+        if (!hit && cssSizeRef.current.w >= 768 && onBackgroundClickRef.current) {
+          onBackgroundClickRef.current()
+        }
       }
 
       canvas.addEventListener('mousemove', handleMouseMove)
