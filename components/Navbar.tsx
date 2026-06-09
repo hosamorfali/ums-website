@@ -60,7 +60,7 @@ export default function Navbar() {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-ums-bg border-b border-ums-border">
-      <nav className="max-w-7xl mx-auto px-6 lg:px-8 h-16 flex items-center justify-between">
+      <nav className="w-full px-6 lg:px-8 h-16 flex items-center justify-between">
 
         {/* Logo */}
         <Link href="/" className="flex-shrink-0 flex items-center gap-2">
