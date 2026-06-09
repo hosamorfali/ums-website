@@ -92,6 +92,14 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const lbPrev = useCallback(() => setLightboxIdx(i => (i - 1 + images.length) % images.length), [images.length])
   const lbNext = useCallback(() => setLightboxIdx(i => (i + 1) % images.length), [images.length])
 
+  // Lock background scroll on mobile while card is open
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.innerWidth >= 768) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    return () => { document.body.style.overflow = prev }
+  }, [])
+
   useEffect(() => {
     if (!lightboxOpen) return
     const onKey = (e: KeyboardEvent) => {
@@ -178,15 +186,16 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             }
           }}
           style={{
-            width:      360,
-            maxWidth:   'calc(100vw - 24px)',
-            maxHeight:  '85vh',
-            background: '#1A1918',
-            border:     '1px solid #5D523C',
-            borderRadius: 16,
-            overflowX:  'hidden',
-            overflowY:  'auto',
-            position:   'relative',
+            width:           360,
+            maxWidth:        'calc(100vw - 24px)',
+            maxHeight:       '85vh',
+            background:      '#1A1918',
+            border:          '1px solid #5D523C',
+            borderRadius:    16,
+            overflowX:       'hidden',
+            overflowY:       'auto',
+            overscrollBehavior: 'contain',
+            position:        'relative',
           }}
         >
           {/* Drag handle — desktop drag + mobile nav row */}
