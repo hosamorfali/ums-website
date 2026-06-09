@@ -42,10 +42,12 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const { addItem, items: cartItems, openDrawer } = useCart()
   const inCart = cartItems.some(i => i.template.id === template.id)
 
-  const constraintsRef = useRef<HTMLDivElement>(null)
-  const dragControls   = useDragControls()
-  const touchStartX    = useRef(0)
-  const touchStartY    = useRef(0)
+  const constraintsRef  = useRef<HTMLDivElement>(null)
+  const dragControls    = useDragControls()
+  const touchStartX     = useRef(0)
+  const touchStartY     = useRef(0)
+  const lbTouchStartX   = useRef(0)
+  const lbTouchStartY   = useRef(0)
 
   // Reset state when template changes
   const prevId = useRef(template.id)
@@ -279,7 +281,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); prevImg() }}
-                      className="absolute left-2 top-1/2 -translate-y-1/2 md:top-auto md:translate-y-0 md:bottom-8 w-5 h-5 md:w-7 md:h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
+                      className="absolute left-2 bottom-2 md:bottom-8 w-5 h-5 md:w-7 md:h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
                       style={{ cursor: 'pointer' }}
                     >
                       <ChevronLeft className="text-white w-[11px] h-[11px] md:w-[14px] md:h-[14px]" />
@@ -287,7 +289,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); nextImg() }}
-                      className="absolute right-2 top-1/2 -translate-y-1/2 md:top-auto md:translate-y-0 md:bottom-8 w-5 h-5 md:w-7 md:h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
+                      className="absolute right-2 bottom-2 md:bottom-8 w-5 h-5 md:w-7 md:h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
                       style={{ cursor: 'pointer' }}
                     >
                       <ChevronRight className="text-white w-[11px] h-[11px] md:w-[14px] md:h-[14px]" />
@@ -489,6 +491,18 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
             onClick={() => setLightboxOpen(false)}
+            onTouchStart={e => {
+              lbTouchStartX.current = e.touches[0].clientX
+              lbTouchStartY.current = e.touches[0].clientY
+            }}
+            onTouchEnd={e => {
+              const dx = e.changedTouches[0].clientX - lbTouchStartX.current
+              const dy = e.changedTouches[0].clientY - lbTouchStartY.current
+              if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
+                if (dx < 0) lbNext()
+                if (dx > 0) lbPrev()
+              }
+            }}
             style={{
               position:       'fixed',
               inset:          0,
@@ -527,7 +541,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             {images.length > 1 && (
               <button
                 onClick={e => { e.stopPropagation(); lbPrev() }}
-                className="absolute left-5 flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 transition-colors"
+                className="absolute left-5 bottom-12 md:bottom-auto md:top-1/2 md:-translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 transition-colors"
                 style={{ color: '#AB9C7D', border: '1px solid #5D523C', background: 'rgba(26,25,24,0.8)', cursor: 'pointer' }}
                 aria-label="Previous image"
               >
@@ -539,7 +553,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             {images.length > 1 && (
               <button
                 onClick={e => { e.stopPropagation(); lbNext() }}
-                className="absolute right-5 flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 transition-colors"
+                className="absolute right-5 bottom-12 md:bottom-auto md:top-1/2 md:-translate-y-1/2 flex items-center justify-center w-10 h-10 rounded-full hover:bg-white/10 transition-colors"
                 style={{ color: '#AB9C7D', border: '1px solid #5D523C', background: 'rgba(26,25,24,0.8)', cursor: 'pointer' }}
                 aria-label="Next image"
               >
@@ -551,7 +565,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             {images.length > 1 && (
               <div
                 onClick={e => e.stopPropagation()}
-                className="absolute bottom-6 left-0 right-0 flex justify-center gap-2"
+                className="absolute bottom-4 left-0 right-0 flex justify-center gap-2"
               >
                 {images.map((_, i) => (
                   <button

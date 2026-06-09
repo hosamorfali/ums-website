@@ -155,19 +155,22 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
         const isScattering = scatteringRef.current && now < scatterEndRef.current
         if (!isScattering && scatteringRef.current) scatteringRef.current = false
 
-        if (isGrid) {
+        // On mobile, freeze all node movement while a template card is open
+        const frozen = W < 768 && selectedRef.current !== null
+
+        if (!frozen && isGrid) {
           // Lerp toward grid targets — no velocity
           nodes.forEach(n => {
             n.x += (n.targetX - n.x) * 0.08
             n.y += (n.targetY - n.y) * 0.08
           })
-        } else if (isScattering) {
+        } else if (!frozen && isScattering) {
           // Lerp toward scatter targets then resume drift
           nodes.forEach(n => {
             n.x += (n.targetX - n.x) * 0.06
             n.y += (n.targetY - n.y) * 0.06
           })
-        } else {
+        } else if (!frozen) {
           // Velocity movement with boundary bounce + gentle damping
           const botP = W < 768 ? MOBILE_BOTTOM_PAD : 0
           nodes.forEach(n => {
