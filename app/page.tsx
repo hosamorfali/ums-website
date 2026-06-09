@@ -3,8 +3,8 @@ import FourPillarsSection  from '@/components/sections/FourPillars'
 import OurExpertiseSection from '@/components/sections/OurExpertise'
 import OurDeliveryModel    from '@/components/sections/OurDeliveryModel'
 import StoreTeaserSection  from '@/components/sections/StoreTeaserSection'
-import FAQSection          from '@/components/sections/FAQSection'
 import ConnectWithUs       from '@/components/sections/ConnectWithUs'
+import BackToTop           from '@/components/BackToTop'
 
 export default function HomePage() {
   return (
@@ -14,8 +14,8 @@ export default function HomePage() {
       <OurExpertiseSection />
       <OurDeliveryModel />
       <StoreTeaserSection />
-      <FAQSection />
       <ConnectWithUs />
+      <BackToTop />
     </div>
   )
 }

@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 export default function Footer() {
   return (
     <footer className="bg-ums-bg border-t border-ums-border">
@@ -5,6 +7,11 @@ export default function Footer() {
         <p className="text-xs text-ums-muted">
           Copyright 2026 Unique Management Solutions, ums-solutions.com
         </p>
+        <nav>
+          <Link href="/faq" className="text-xs text-ums-muted hover:text-ums-gold transition-colors">
+            FAQ
+          </Link>
+        </nav>
         <p className="text-xs italic text-ums-gold">
           Complexity into Clarity. Crafted to Impress.
         </p>
