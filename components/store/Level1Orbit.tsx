@@ -1,15 +1,15 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { useAnimationFrame, m, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { CATEGORIES } from '@/lib/store-data'
 
-const ORBIT_RADIUS = 210
-const ORBIT_SPEED  = 0.00014   // rad/ms
-const NODE_SIZE    = 88
-// Shift orbit centre below the geometric middle to balance with the heading above
-const ORBIT_OFFSET = 55
+const ORBIT_RADIUS    = 210
+const ORBIT_SPEED     = 0.00014   // rad/ms
+const NODE_SIZE       = 88
+const ORBIT_OFFSET_MD = -8   // desktop: orbit sits ~8px above centre for equal spacing
+const ORBIT_OFFSET_SM = 55   // mobile: pushed down to sit below the heading
 
 interface Props {
   onSelect: (categoryId: string) => void
@@ -18,6 +18,16 @@ interface Props {
 export function Level1Orbit({ onSelect }: Props) {
   const angleRef    = useRef(0)
   const isPausedRef = useRef(false)
+
+  // Desktop-only orbit shift — keeps mobile layout unchanged
+  const [orbitOffset, setOrbitOffset] = useState(() =>
+    typeof window !== 'undefined' && window.innerWidth >= 640 ? ORBIT_OFFSET_MD : ORBIT_OFFSET_SM,
+  )
+  useEffect(() => {
+    const update = () => setOrbitOffset(window.innerWidth >= 640 ? ORBIT_OFFSET_MD : ORBIT_OFFSET_SM)
+    window.addEventListener('resize', update)
+    return () => window.removeEventListener('resize', update)
+  }, [])
   const lastPosRef  = useRef<{ x: number; y: number }[]>(
     CATEGORIES.map((_, i) => ({
       x: Math.cos((i / CATEGORIES.length) * Math.PI * 2) * ORBIT_RADIUS,
@@ -65,7 +75,7 @@ export function Level1Orbit({ onSelect }: Props) {
           style={{ top: 40, opacity: exiting ? 0 : 1, transition: 'opacity 0.5s' }}
         >
           <p
-            className="text-[10px] font-semibold uppercase tracking-[0.28em]"
+            className="text-[10px] sm:text-[13px] font-semibold uppercase tracking-[0.28em]"
             style={{ color: '#888073' }}
           >
             Browse by Category. Find Your Framework.
@@ -78,7 +88,7 @@ export function Level1Orbit({ onSelect }: Props) {
           style={{
             width:  ORBIT_RADIUS * 2,
             height: ORBIT_RADIUS * 2,
-            top:    `calc(50% + ${ORBIT_OFFSET}px - ${ORBIT_RADIUS}px)`,
+            top:    `calc(50% + ${orbitOffset}px - ${ORBIT_RADIUS}px)`,
             left:   `calc(50% - ${ORBIT_RADIUS}px)`,
           }}
         />
@@ -87,7 +97,7 @@ export function Level1Orbit({ onSelect }: Props) {
         <div
           className="absolute z-20"
           style={{
-            top:       `calc(50% + ${ORBIT_OFFSET}px)`,
+            top:       `calc(50% + ${orbitOffset}px)`,
             left:      '50%',
             transform: 'translate(-50%, -50%)',
             opacity:   exiting ? 0.15 : 1,
@@ -116,7 +126,7 @@ export function Level1Orbit({ onSelect }: Props) {
             style={{
               position:   'absolute',
               left:       '50%',
-              top:        `calc(50% + ${ORBIT_OFFSET}px)`,
+              top:        `calc(50% + ${orbitOffset}px)`,
               width:      NODE_SIZE,
               height:     NODE_SIZE,
               marginLeft: -NODE_SIZE / 2,
@@ -158,7 +168,7 @@ export function Level1Orbit({ onSelect }: Props) {
               style={{
                 position:   'absolute',
                 left:       '50%',
-                top:        `calc(50% + ${ORBIT_OFFSET}px)`,
+                top:        `calc(50% + ${orbitOffset}px)`,
                 width:      NODE_SIZE,
                 height:     NODE_SIZE,
                 marginLeft: -NODE_SIZE / 2,
