@@ -78,11 +78,12 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
       const nodes = nodesRef.current
       const n = nodes.length
       if (n === 0 || W <= 0 || H <= 0) return
-      const cols  = Math.ceil(Math.sqrt(n))
+      const isMobileGrid = W < 768
+      const cols  = isMobileGrid ? Math.min(3, Math.ceil(Math.sqrt(n))) : Math.ceil(Math.sqrt(n))
       const rows  = Math.ceil(n / cols)
       const topP  = topPadRef.current + 20
-      const botP  = W < 768 ? MOBILE_BOTTOM_PAD : 0
-      const hPad  = 80
+      const botP  = isMobileGrid ? MOBILE_BOTTOM_PAD : 0
+      const hPad  = isMobileGrid ? 20 : 80
       const cellW = (W - hPad * 2) / cols
       const cellH = (H - topP - 40 - botP) / rows
       nodes.forEach((node, i) => {
@@ -97,8 +98,8 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
       const botP     = isMobile ? MOBILE_BOTTOM_PAD : 0
       nodesRef.current = templates.map(t => {
         const r = t.isKit
-          ? (isMobile ? 38 : KIT_RADIUS)
-          : (isMobile ? 26 : REGULAR_RADIUS)
+          ? (isMobile ? 46 : KIT_RADIUS)
+          : (isMobile ? 36 : REGULAR_RADIUS)
         const pad = r + 40
         const x   = pad + Math.random() * (W - pad * 2)
         const y   = topP + pad + Math.random() * (H - topP - botP - pad * 2)

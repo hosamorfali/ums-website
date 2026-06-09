@@ -171,8 +171,8 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             const dx = e.changedTouches[0].clientX - touchStartX.current
             const dy = e.changedTouches[0].clientY - touchStartY.current
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
-              if (dx < 0 && onNext) onNext()
-              if (dx > 0 && onPrev) onPrev()
+              if (dx < 0) nextImg()
+              if (dx > 0) prevImg()
             }
           }}
           style={{
@@ -279,18 +279,18 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); prevImg() }}
-                      className="absolute left-2 bottom-8 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
+                      className="absolute left-2 top-1/2 -translate-y-1/2 md:top-auto md:translate-y-0 md:bottom-8 w-5 h-5 md:w-7 md:h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
                       style={{ cursor: 'pointer' }}
                     >
-                      <ChevronLeft size={14} className="text-white" />
+                      <ChevronLeft className="text-white w-[11px] h-[11px] md:w-[14px] md:h-[14px]" />
                     </button>
                     <button
                       onPointerDown={e => e.stopPropagation()}
                       onClick={e => { e.stopPropagation(); nextImg() }}
-                      className="absolute right-2 bottom-8 w-7 h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 md:top-auto md:translate-y-0 md:bottom-8 w-5 h-5 md:w-7 md:h-7 rounded-full bg-black/60 flex items-center justify-center hover:bg-black/80 transition-colors z-[2]"
                       style={{ cursor: 'pointer' }}
                     >
-                      <ChevronRight size={14} className="text-white" />
+                      <ChevronRight className="text-white w-[11px] h-[11px] md:w-[14px] md:h-[14px]" />
                     </button>
                     <div className="absolute bottom-2 left-0 right-0 flex justify-center gap-1 z-[2]">
                       {images.map((_, i) => (

@@ -128,8 +128,8 @@ export function StoreExperience() {
                   All Categories
                 </button>
 
-                {/* Absolutely centred so it stays centred regardless of sibling widths */}
-                <p className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] md:text-sm font-semibold uppercase tracking-[0.22em] text-ums-gold whitespace-nowrap pointer-events-none">
+                {/* Absolutely centred on desktop — hidden on mobile to avoid overlapping the button */}
+                <p className="hidden md:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-sm font-semibold uppercase tracking-[0.22em] text-ums-gold whitespace-nowrap pointer-events-none">
                   {categoryName}
                 </p>
 
@@ -162,6 +162,11 @@ export function StoreExperience() {
                   </button>
                 </div>
               </div>
+
+              {/* Mobile-only category name — shown below the button row to avoid overlap */}
+              <p className="md:hidden mt-3 text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-ums-gold whitespace-nowrap">
+                {categoryName}
+              </p>
 
               {/* Statement — centred below the top bar */}
               <p
