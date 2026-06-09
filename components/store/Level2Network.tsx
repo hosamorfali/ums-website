@@ -230,15 +230,18 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
           n.currentScale += (targetScale - n.currentScale) * 0.14
           const drawR = n.radius * n.currentScale
 
-          // Glow ring
-          if (isFocused || isHovered || isSelected) {
+          // Glow ring — on desktop the bloom intensity follows the scale lerp for a smooth transition
+          const glowIntensity = isDesktop ? Math.max(0, (n.currentScale - 1.0) / 0.12) : 0
+          if (isFocused || isHovered || isSelected || glowIntensity > 0.01) {
             ctx.save()
-            ctx.shadowColor = '#AB9C7D'
-            ctx.shadowBlur  = isFocused ? 28 : 16
+            ctx.shadowColor = isDesktop ? `rgba(171,156,125,${glowIntensity})` : '#AB9C7D'
+            ctx.shadowBlur  = isFocused ? 28 : (isDesktop ? 6 + glowIntensity * 24 : 16)
             ctx.beginPath()
             ctx.arc(n.x, n.y, drawR, 0, Math.PI * 2)
-            ctx.strokeStyle = '#AB9C7D'
-            ctx.lineWidth   = 2
+            ctx.strokeStyle = isDesktop
+              ? `rgba(171,156,125,${0.45 + glowIntensity * 0.55})`
+              : '#AB9C7D'
+            ctx.lineWidth = 2
             ctx.stroke()
             ctx.restore()
           }
@@ -256,7 +259,7 @@ const Level2Network = forwardRef<Level2NetworkHandle, Props>(
 
           // Label with word-wrap
           const maxW = drawR * 1.7
-          const fSize = n.isKit ? 9.5 : 8.5
+          const fSize = n.isKit ? (isDesktop ? 13 : 9.5) : (isDesktop ? 11 : 8.5)
           ctx.font         = `bold ${fSize}px ui-sans-serif,system-ui,sans-serif`
           ctx.textAlign    = 'center'
           ctx.textBaseline = 'middle'
