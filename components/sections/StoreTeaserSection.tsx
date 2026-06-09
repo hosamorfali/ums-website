@@ -220,7 +220,7 @@ export default function StoreTeaserSection() {
           viewport={{ once: true, margin: '-80px' }}
           className="max-w-xl text-base leading-relaxed text-foreground md:text-lg"
         >
-          Consulting-grade strategy frameworks — ready to use, built to teach, and continuously updated.
+          Consulting-grade frameworks. Ready to use. Built to transfer knowledge and save your time.
         </m.p>
 
         <m.p
