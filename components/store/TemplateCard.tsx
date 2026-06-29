@@ -42,15 +42,32 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const { addItem, items: cartItems, openDrawer } = useCart()
   const inCart = cartItems.some(i => i.template.id === template.id)
 
-  const constraintsRef       = useRef<HTMLDivElement>(null)
-  const dragControls         = useDragControls()
-  const touchStartX          = useRef(0)
-  const touchStartY          = useRef(0)
-  const touchStartCount      = useRef(0)
-  const lbTouchStartX        = useRef(0)
-  const lbTouchStartY        = useRef(0)
-  const lbTouchStartCount    = useRef(0)
-  const backdropTouchStart   = useRef<{ x: number; y: number } | null>(null)
+  const constraintsRef     = useRef<HTMLDivElement>(null)
+  const dragControls       = useDragControls()
+  const touchStartX        = useRef(0)
+  const touchStartY        = useRef(0)
+  const lbTouchStartX      = useRef(0)
+  const lbTouchStartY      = useRef(0)
+  const backdropTouchStart = useRef<{ x: number; y: number } | null>(null)
+
+  // Global multi-touch guard — set true whenever ≥2 fingers are on screen anywhere.
+  // Using a document-level listener so we catch the case where finger 1 lands on the
+  // backdrop and finger 2 lands on the card: the backdrop's own onTouchStart only sees
+  // the first finger (single-touch), but the document listener sees both.
+  const multiTouchActiveRef = useRef(false)
+
+  // Image pinch-zoom state — stored as refs to avoid re-renders on every frame.
+  const imgScaleRef         = useRef(1)
+  const imgTransXRef        = useRef(0)
+  const imgTransYRef        = useRef(0)
+  const pinchInitDistRef    = useRef(0)
+  const pinchInitScaleRef   = useRef(1)
+  const panStartXRef        = useRef(0)
+  const panStartYRef        = useRef(0)
+  const panStartTransXRef   = useRef(0)
+  const panStartTransYRef   = useRef(0)
+  const imageWrapRef        = useRef<HTMLDivElement>(null)
+  const imgInnerRef         = useRef<HTMLDivElement>(null)
 
   // Reset state when template changes
   const prevId = useRef(template.id)
@@ -60,6 +77,11 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     setExpanded(false)
     setLightboxOpen(false)
     setAddedFlash(false)
+    // Reset zoom
+    imgScaleRef.current   = 1
+    imgTransXRef.current  = 0
+    imgTransYRef.current  = 0
+    if (imgInnerRef.current) imgInnerRef.current.style.transform = ''
   }
 
   const handleAddToCart = useCallback(() => {
@@ -114,23 +136,116 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     return () => window.removeEventListener('keydown', onKey)
   }, [lightboxOpen, lbPrev, lbNext])
 
+  // Global multi-touch tracker — fires on document so it catches every finger regardless
+  // of which element each touch lands on.
+  useEffect(() => {
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length > 1) multiTouchActiveRef.current = true
+    }
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) multiTouchActiveRef.current = false
+    }
+    document.addEventListener('touchstart', onStart, { passive: true })
+    document.addEventListener('touchend',   onEnd,   { passive: true })
+    return () => {
+      document.removeEventListener('touchstart', onStart)
+      document.removeEventListener('touchend',   onEnd)
+    }
+  }, [])
+
+  // Pinch-zoom + pan on the preview image.
+  // Uses a non-passive touchmove listener (unavailable in React's synthetic events)
+  // so we can call e.preventDefault() and suppress scroll/browser-zoom while pinching.
+  useEffect(() => {
+    const wrap  = imageWrapRef.current
+    const inner = imgInnerRef.current
+    if (!wrap || !inner) return
+
+    const pinchDist = (t: TouchList) => {
+      const dx = t[0].clientX - t[1].clientX
+      const dy = t[0].clientY - t[1].clientY
+      return Math.sqrt(dx * dx + dy * dy)
+    }
+
+    const applyTransform = () => {
+      inner.style.transform = `scale(${imgScaleRef.current}) translate(${imgTransXRef.current}px, ${imgTransYRef.current}px)`
+      wrap.style.cursor     = imgScaleRef.current > 1 ? 'grab' : 'zoom-in'
+    }
+
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        pinchInitDistRef.current  = pinchDist(e.touches)
+        pinchInitScaleRef.current = imgScaleRef.current
+      } else if (e.touches.length === 1 && imgScaleRef.current > 1) {
+        // Start panning while zoomed
+        panStartXRef.current      = e.touches[0].clientX
+        panStartYRef.current      = e.touches[0].clientY
+        panStartTransXRef.current = imgTransXRef.current
+        panStartTransYRef.current = imgTransYRef.current
+      }
+    }
+
+    const onMove = (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        e.preventDefault()
+        const ratio = pinchDist(e.touches) / pinchInitDistRef.current
+        imgScaleRef.current = Math.max(1, Math.min(4, pinchInitScaleRef.current * ratio))
+        applyTransform()
+      } else if (e.touches.length === 1 && imgScaleRef.current > 1) {
+        e.preventDefault()
+        // Translate in unscaled coordinates so 1px of finger movement = 1px of pan
+        imgTransXRef.current = panStartTransXRef.current + (e.touches[0].clientX - panStartXRef.current) / imgScaleRef.current
+        imgTransYRef.current = panStartTransYRef.current + (e.touches[0].clientY - panStartYRef.current) / imgScaleRef.current
+        applyTransform()
+      }
+    }
+
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0 && imgScaleRef.current <= 1.05) {
+        // Snap back to natural scale
+        imgScaleRef.current  = 1
+        imgTransXRef.current = 0
+        imgTransYRef.current = 0
+        inner.style.transform = ''
+        wrap.style.cursor     = 'zoom-in'
+      } else if (e.touches.length === 1 && imgScaleRef.current > 1) {
+        // One finger lifted during pinch — pivot to panning with the remaining finger
+        panStartXRef.current      = e.touches[0].clientX
+        panStartYRef.current      = e.touches[0].clientY
+        panStartTransXRef.current = imgTransXRef.current
+        panStartTransYRef.current = imgTransYRef.current
+      }
+    }
+
+    wrap.addEventListener('touchstart', onStart, { passive: true })
+    wrap.addEventListener('touchmove',  onMove,  { passive: false })
+    wrap.addEventListener('touchend',   onEnd,   { passive: true })
+
+    return () => {
+      wrap.removeEventListener('touchstart', onStart)
+      wrap.removeEventListener('touchmove',  onMove)
+      wrap.removeEventListener('touchend',   onEnd)
+    }
+  }, []) // refs are stable; no deps needed
+
   // ── Outer: fixed full-screen centering wrapper (opacity transition via AnimatePresence)
   return (
     <>
-    {/* Mobile-only backdrop — single deliberate tap to dismiss; ignores pinch */}
+    {/* Mobile-only backdrop — only closes on a deliberate single-finger tap */}
     <div
       className="fixed inset-0 md:hidden"
       style={{ zIndex: 9998, background: 'rgba(0,0,0,0.45)' }}
       onTouchStart={e => {
-        if (e.touches.length === 1) {
-          backdropTouchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
-        } else {
-          backdropTouchStart.current = null
-        }
+        backdropTouchStart.current = e.touches.length === 1
+          ? { x: e.touches[0].clientX, y: e.touches[0].clientY }
+          : null
       }}
       onTouchEnd={e => {
+        // multiTouchActiveRef catches the case where finger 1 landed here (single-touch
+        // onTouchStart) but finger 2 landed on the card — the backdrop never saw that
+        // second touchstart, but the document-level listener did.
         const start = backdropTouchStart.current
-        if (!start) return
+        if (!start || multiTouchActiveRef.current) return
         if (e.changedTouches.length !== 1) return
         const dx = Math.abs(e.changedTouches[0].clientX - start.x)
         const dy = Math.abs(e.changedTouches[0].clientY - start.y)
@@ -190,7 +305,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         {/* ── Card visual ── */}
         <div
           onTouchStart={e => {
-            touchStartCount.current = e.touches.length
             if (e.touches.length === 1) {
               touchStartX.current = e.touches[0].clientX
               touchStartY.current = e.touches[0].clientY
@@ -198,7 +312,9 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           }}
           onTouchEnd={e => {
             if (window.innerWidth >= 768) return
-            if (touchStartCount.current !== 1 || e.touches.length > 0) return
+            // Block carousel swipe on any multi-touch gesture or when image is zoomed
+            if (multiTouchActiveRef.current || e.touches.length > 0) return
+            if (imgScaleRef.current > 1) return
             const dx = e.changedTouches[0].clientX - touchStartX.current
             const dy = e.changedTouches[0].clientY - touchStartY.current
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
@@ -291,20 +407,38 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           >
             {images.length > 0 ? (
               <>
+                {/*
+                  imageWrapRef: receives the pinch-zoom useEffect listeners.
+                  touch-action: none so we capture all touch events (including
+                  pinch) and call e.preventDefault() in touchmove ourselves.
+                  overflow: hidden clips the image when it's panned/zoomed.
+                  imgInnerRef: the element whose CSS transform we update directly
+                  (no React re-renders) on every pinch/pan frame.
+                */}
                 <div
+                  ref={imageWrapRef}
                   onPointerDown={e => e.stopPropagation()}
-                  onClick={e => { e.stopPropagation(); openLightbox(imgIndex) }}
-                  className="absolute inset-0 z-[1] group"
-                  style={{ cursor: 'zoom-in', touchAction: 'pan-y' }}
+                  onClick={e => {
+                    e.stopPropagation()
+                    if (imgScaleRef.current > 1) return  // tap while zoomed = pan intent, not lightbox
+                    openLightbox(imgIndex)
+                  }}
+                  className="absolute inset-0 z-[1] group overflow-hidden"
+                  style={{ cursor: 'zoom-in', touchAction: 'none' }}
                 >
-                  <Image
-                    src={images[imgIndex]}
-                    alt={template.shortName}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div
+                    ref={imgInnerRef}
+                    style={{ width: '100%', height: '100%', transformOrigin: 'center' }}
+                  >
+                    <Image
+                      src={images[imgIndex]}
+                      alt={template.shortName}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
                     <div className="rounded-full bg-black/50 p-2">
                       <ZoomIn size={18} className="text-white" />
                     </div>
@@ -526,14 +660,13 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             transition={{ duration: 0.18 }}
             onClick={() => setLightboxOpen(false)}
             onTouchStart={e => {
-              lbTouchStartCount.current = e.touches.length
               if (e.touches.length === 1) {
                 lbTouchStartX.current = e.touches[0].clientX
                 lbTouchStartY.current = e.touches[0].clientY
               }
             }}
             onTouchEnd={e => {
-              if (lbTouchStartCount.current !== 1 || e.touches.length > 0) return
+              if (multiTouchActiveRef.current || e.touches.length > 0) return
               const dx = e.changedTouches[0].clientX - lbTouchStartX.current
               const dy = e.changedTouches[0].clientY - lbTouchStartY.current
               if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
