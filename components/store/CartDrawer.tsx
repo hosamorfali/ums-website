@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import { AnimatePresence, m } from 'framer-motion'
 import Image from 'next/image'
 import { X, Trash2, ArrowRight, Package } from 'lucide-react'
@@ -68,6 +68,9 @@ export function CartDrawer({ onOpenTemplate }: Props) {
     setStep('email')
   }
 
+  const swipeTouchStartX = useRef(0)
+  const swipeTouchStartY = useRef(0)
+
   return (
     <>
       <AnimatePresence>
@@ -95,18 +98,29 @@ export function CartDrawer({ onOpenTemplate }: Props) {
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
               transition={{ type: 'tween', duration: 0.3, ease: [0.32, 0, 0.16, 1] }}
+              onTouchStart={e => {
+                swipeTouchStartX.current = e.touches[0].clientX
+                swipeTouchStartY.current = e.touches[0].clientY
+              }}
+              onTouchEnd={e => {
+                const dx = e.changedTouches[0].clientX - swipeTouchStartX.current
+                const dy = Math.abs(e.changedTouches[0].clientY - swipeTouchStartY.current)
+                // Deliberate rightward swipe with clear horizontal intent
+                if (dx > 72 && dy < dx * 0.6) handleClose()
+              }}
               style={{
-                position:  'fixed',
-                top:       0,
-                right:     0,
-                bottom:    0,
-                width:     400,
-                maxWidth:  '100vw',
-                background:'#1A1918',
-                borderLeft:'1px solid #5D523C',
-                zIndex:    9991,
-                display:   'flex',
+                position:    'fixed',
+                top:         0,
+                right:       0,
+                bottom:      0,
+                width:       400,
+                maxWidth:    '88vw',   // leaves ~12% visible on mobile; 400px wins on desktop
+                background:  '#1A1918',
+                borderLeft:  '1px solid #5D523C',
+                zIndex:      9991,
+                display:     'flex',
                 flexDirection: 'column',
+                touchAction: 'pan-y',  // lets the browser scroll vertically but not navigate horizontally
               }}
             >
               {/* ── Step: cart ── */}
