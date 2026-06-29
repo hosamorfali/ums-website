@@ -34,9 +34,10 @@ interface FulfillmentLineItem {
 }
 
 interface FulfillmentRecord {
-  id:           number
-  tracking_url: string | null
-  line_items:   FulfillmentLineItem[]
+  id:              number
+  tracking_url:    string | null
+  tracking_number: string | null
+  line_items:      FulfillmentLineItem[]
 }
 
 // Extracts a direct file URL from a Shopify metafields array.
@@ -211,53 +212,69 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 3. Resolve direct download URLs via Digital Downloads metafields ──────
-  // tracking_url from DD fulfillments only returns the Shopify order status
-  // page, not a direct file link. The actual download URL is stored as a
-  // product-level metafield (namespace: digital_downloads) by the DD app.
-  // We query variant → product metafields in order until we find a file URL.
+  // ── 3. Resolve per-item Digital Downloads page URLs ─────────────────────
+  // tracking_url on DD fulfillments returns the Shopify order status page
+  // (wrong). DD's actual per-order download page lives at:
+  //   https://{shop_domain}/apps/downloads/{tracking_number}
+  // tracking_number on the fulfillment is the unique token DD generates per
+  // line item. If that is also absent, fall back to product metafields, then
+  // to orderStatusUrl as a last resort.
+
+  // Build a map: variant_id → { tracking_number, tracking_url } from fulfillments
+  const fulfillmentByVariant = new Map<string, { trackingNumber: string | null; trackingUrl: string | null }>()
+  for (const f of createdFulfillments) {
+    for (const li of (f.line_items ?? [])) {
+      fulfillmentByVariant.set(String(li.variant_id), {
+        trackingNumber: f.tracking_number,
+        trackingUrl:    f.tracking_url,
+      })
+    }
+  }
+  console.log('[Fulfillments] tracking data:', JSON.stringify([...fulfillmentByVariant.entries()]))
+
   const variantToUrl = new Map<string, string>()
 
   for (const item of items) {
     let downloadUrl = orderStatusUrl
+    const ft = fulfillmentByVariant.get(item.shopifyVariantId)
 
+    // Priority 1: construct the DD download page from tracking_number token
+    if (ft?.trackingNumber) {
+      downloadUrl = `https://${domain}/apps/downloads/${ft.trackingNumber}`
+      console.log(`[DownloadURL] ${item.name} → DD page via tracking_number: ${downloadUrl}`)
+      variantToUrl.set(item.shopifyVariantId, downloadUrl)
+      continue
+    }
+
+    // Priority 2: tracking_url if it points to an /apps/downloads/ page (not order status)
+    if (ft?.trackingUrl && ft.trackingUrl.includes('/apps/downloads/')) {
+      downloadUrl = ft.trackingUrl
+      console.log(`[DownloadURL] ${item.name} → DD page via tracking_url: ${downloadUrl}`)
+      variantToUrl.set(item.shopifyVariantId, downloadUrl)
+      continue
+    }
+
+    // Priority 3: product metafields (raw CDN file URL from DD)
     if (item.shopifyVariantId) {
-      // Step A: variant-level metafields
       try {
-        const vmRes  = await fetch(`${base}/variants/${item.shopifyVariantId}/metafields.json`, { headers })
-        const vmData = await vmRes.json()
-        const vmfs: ShopifyMetafield[] = vmData.metafields ?? []
-        console.log(`[Metafields] variant ${item.shopifyVariantId} (${vmfs.length} fields):`, JSON.stringify(vmfs))
+        const varRes  = await fetch(`${base}/variants/${item.shopifyVariantId}.json`, { headers })
+        const varData = await varRes.json()
+        const productId: number | undefined = varData.variant?.product_id
 
-        const vUrl = extractFileUrl(vmfs)
-        if (vUrl) { downloadUrl = vUrl }
-      } catch (e) {
-        console.error(`[Metafields] variant fetch error for ${item.shopifyVariantId}:`, e)
-      }
-
-      // Step B: product-level metafields (DD attaches files at product level)
-      if (downloadUrl === orderStatusUrl) {
-        try {
-          const varRes  = await fetch(`${base}/variants/${item.shopifyVariantId}.json`, { headers })
-          const varData = await varRes.json()
-          const productId: number | undefined = varData.variant?.product_id
-
-          if (productId) {
-            const pmRes  = await fetch(`${base}/products/${productId}/metafields.json`, { headers })
-            const pmData = await pmRes.json()
-            const pmfs: ShopifyMetafield[] = pmData.metafields ?? []
-            console.log(`[Metafields] product ${productId} (${pmfs.length} fields):`, JSON.stringify(pmfs))
-
-            const pUrl = extractFileUrl(pmfs)
-            if (pUrl) { downloadUrl = pUrl }
-          }
-        } catch (e) {
-          console.error(`[Metafields] product fetch error for variant ${item.shopifyVariantId}:`, e)
+        if (productId) {
+          const pmRes  = await fetch(`${base}/products/${productId}/metafields.json`, { headers })
+          const pmData = await pmRes.json()
+          const pmfs: ShopifyMetafield[] = pmData.metafields ?? []
+          console.log(`[Metafields] product ${productId}:`, JSON.stringify(pmfs))
+          const pUrl = extractFileUrl(pmfs)
+          if (pUrl) { downloadUrl = pUrl }
         }
+      } catch (e) {
+        console.error(`[Metafields] error for variant ${item.shopifyVariantId}:`, e)
       }
     }
 
-    console.log(`[DownloadURL] ${item.name} → ${downloadUrl}`)
+    console.log(`[DownloadURL] ${item.name} → fallback: ${downloadUrl}`)
     variantToUrl.set(item.shopifyVariantId, downloadUrl)
   }
 
