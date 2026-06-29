@@ -187,6 +187,11 @@ export async function POST(req: NextRequest) {
     const fulfData = await fulfRes.json()
     createdFulfillments = fulfData.fulfillments ?? []
     console.log(`[Fulfillments] attempt ${attempt}/5: ${createdFulfillments.length} fulfillment(s)`)
+    // Log tracking_url for every fulfillment so we can see what DD returns
+    for (const f of createdFulfillments) {
+      console.log(`[Fulfillments] fulfillment ${f.id} tracking_url:`, f.tracking_url)
+      console.log(`[Fulfillments] fulfillment ${f.id} line_items:`, JSON.stringify(f.line_items))
+    }
     if (createdFulfillments.length >= items.length) break
   }
 
@@ -217,8 +222,15 @@ export async function POST(req: NextRequest) {
     .join('')
 
   // ── 6. Send branded purchase email via EmailJS (Digital Downloads = backup) ─
+  console.log('[EmailJS] preparing to send purchase email')
+  console.log('[EmailJS] customer_email:', email)
+  console.log('[EmailJS] service_id env:', process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID ?? 'MISSING')
+  console.log('[EmailJS] template_id env:', process.env.NEXT_PUBLIC_EMAILJS_PURCHASE_TEMPLATE_ID ?? 'MISSING')
+  console.log('[EmailJS] user_id env:', process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY ? 'SET' : 'MISSING')
+  console.log('[EmailJS] download_links (first 300 chars):', downloadLinksHtml.slice(0, 300))
+
   try {
-    const ejRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+    const ejRes  = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
       method:  'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -228,9 +240,10 @@ export async function POST(req: NextRequest) {
         template_params: { customer_email: email, download_links: downloadLinksHtml },
       }),
     })
-    console.log('[EmailJS] purchase email → HTTP', ejRes.status, await ejRes.text())
+    const ejBody = await ejRes.text()
+    console.log('[EmailJS] response → HTTP', ejRes.status, '| body:', ejBody)
   } catch (err) {
-    console.error('[EmailJS] failed (non-blocking):', err)
+    console.error('[EmailJS] fetch threw (non-blocking):', err)
   }
 
   return NextResponse.json({ orderId })
