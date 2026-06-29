@@ -46,8 +46,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const dragControls       = useDragControls()
   const touchStartX        = useRef(0)
   const touchStartY        = useRef(0)
-  const lbTouchStartX      = useRef(0)
-  const lbTouchStartY      = useRef(0)
   const backdropTouchStart = useRef<{ x: number; y: number } | null>(null)
 
   // Global multi-touch guard.
@@ -738,24 +736,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               // timestamp of the last multi-touch release as a gate instead.
               if (Date.now() - multiTouchEndTimeRef.current < 400) return
               closeLightbox()
-            }}
-            onTouchStart={e => {
-              if (e.touches.length === 1) {
-                lbTouchStartX.current = e.touches[0].clientX
-                lbTouchStartY.current = e.touches[0].clientY
-              }
-            }}
-            onTouchEnd={e => {
-              // Block on any multi-touch gesture, when fingers are still down,
-              // or while the lightbox image is zoomed (pan intent, not swipe)
-              if (multiTouchActiveRef.current || e.touches.length > 0) return
-              if (lbImgScaleRef.current > 1) return
-              const dx = e.changedTouches[0].clientX - lbTouchStartX.current
-              const dy = e.changedTouches[0].clientY - lbTouchStartY.current
-              if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
-                if (dx < 0) lbNext()
-                if (dx > 0) lbPrev()
-              }
             }}
             style={{
               position:       'fixed',
