@@ -208,7 +208,7 @@ export async function POST(req: NextRequest) {
         template_id:     process.env.NEXT_PUBLIC_EMAILJS_PURCHASE_TEMPLATE_ID,
         user_id:         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
         accessToken:     process.env.EMAILJS_PRIVATE_KEY,
-        template_params: { customer_email: email, download_links: downloadLinksHtml },
+        template_params: { to_email: email, customer_email: email, download_links: downloadLinksHtml },
       }),
     })
     const ejBody = await ejRes.text()
