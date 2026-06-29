@@ -28,6 +28,17 @@ interface ShopifyFulfillmentOrder {
   line_items:                 ShopifyFulfillmentOrderLineItem[]
 }
 
+interface FulfillmentLineItem {
+  variant_id: number
+  name:       string
+}
+
+interface FulfillmentRecord {
+  id:           number
+  tracking_url: string | null
+  line_items:   FulfillmentLineItem[]
+}
+
 export async function POST(req: NextRequest) {
   const body: OrderBody = await req.json()
   const { email, items, total, paymentId } = body
@@ -162,6 +173,64 @@ export async function POST(req: NextRequest) {
 
   if (requestCount === 0) {
     console.warn('[FulfillmentRequest] no requestable FOs found — DD may have auto-processed or all FOs have unexpected status')
+  }
+
+  // ── 4. Poll for created fulfillments to get per-item download URLs ────────
+  // Digital Downloads creates a fulfillment per request asynchronously.
+  // Poll until we have as many fulfillments as items, or give up after 5s.
+  const orderStatusUrl = (orderData.order?.order_status_url as string) ?? ''
+  let createdFulfillments: FulfillmentRecord[] = []
+
+  for (let attempt = 1; attempt <= 5; attempt++) {
+    await new Promise(r => setTimeout(r, 1000))
+    const fulfRes  = await fetch(`${base}/orders/${orderId}/fulfillments.json`, { headers })
+    const fulfData = await fulfRes.json()
+    createdFulfillments = fulfData.fulfillments ?? []
+    console.log(`[Fulfillments] attempt ${attempt}/5: ${createdFulfillments.length} fulfillment(s)`)
+    if (createdFulfillments.length >= items.length) break
+  }
+
+  // ── 5. Build per-item download HTML ──────────────────────────────────────
+  // Map shopify variant_id → download URL extracted from DD fulfillment tracking_url.
+  // Falls back to order_status_url if DD hasn't populated tracking_url yet.
+  const variantToUrl = new Map<string, string>()
+  for (const f of createdFulfillments) {
+    const url = f.tracking_url || orderStatusUrl
+    for (const li of (f.line_items ?? [])) {
+      variantToUrl.set(String(li.variant_id), url)
+    }
+  }
+
+  const downloadLinksHtml = items
+    .map((item, idx) => {
+      const isLast  = idx === items.length - 1
+      const url     = variantToUrl.get(item.shopifyVariantId) || orderStatusUrl
+      return (
+        `<div style="margin-bottom:16px;padding-bottom:16px;${isLast ? '' : 'border-bottom:1px solid #f0f0f0;'}">` +
+        `<div style="font-size:11px;letter-spacing:0.1em;color:#999999;margin-bottom:4px;">FRAMEWORK NAME</div>` +
+        `<div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:8px;">${item.name}</div>` +
+        `<div style="font-size:11px;letter-spacing:0.1em;color:#999999;margin-bottom:4px;">DOWNLOAD LINK</div>` +
+        `<a href="${url}" style="font-size:13px;color:#1a1a1a;text-decoration:underline;">Download your file →</a>` +
+        `</div>`
+      )
+    })
+    .join('')
+
+  // ── 6. Send branded purchase email via EmailJS (Digital Downloads = backup) ─
+  try {
+    const ejRes = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id:      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
+        template_id:     process.env.NEXT_PUBLIC_EMAILJS_PURCHASE_TEMPLATE_ID,
+        user_id:         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
+        template_params: { customer_email: email, download_links: downloadLinksHtml },
+      }),
+    })
+    console.log('[EmailJS] purchase email → HTTP', ejRes.status, await ejRes.text())
+  } catch (err) {
+    console.error('[EmailJS] failed (non-blocking):', err)
   }
 
   return NextResponse.json({ orderId })
