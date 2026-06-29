@@ -88,12 +88,27 @@ export async function POST(req: NextRequest) {
   const orderId = orderData.order?.id as number
   console.log('[Order] created:', orderId, '| financial_status:', orderData.order?.financial_status)
 
-  // ── 2. Fetch ALL fulfillment orders (not just open) ──────────────────────
-  const foRes  = await fetch(`${base}/orders/${orderId}/fulfillment_orders.json`, { headers })
-  const foData = await foRes.json()
-  const allFOs: ShopifyFulfillmentOrder[] = foData.fulfillment_orders ?? []
+  // ── 2. Poll for fulfillment orders until count matches line item count ────
+  // Shopify/Digital Downloads creates FOs asynchronously after order creation.
+  // Fetching immediately misses FOs that aren't ready yet, causing multi-item
+  // orders to only deliver the first item. Retry until all FOs are present.
+  const MAX_ATTEMPTS    = 10
+  const POLL_INTERVAL   = 1000
+  let allFOs: ShopifyFulfillmentOrder[] = []
 
-  console.log('[FulfillmentOrders] all FOs:', JSON.stringify(allFOs.map(fo => ({
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    if (attempt > 1) await new Promise(r => setTimeout(r, POLL_INTERVAL))
+
+    const foRes  = await fetch(`${base}/orders/${orderId}/fulfillment_orders.json`, { headers })
+    const foData = await foRes.json()
+    allFOs = foData.fulfillment_orders ?? []
+
+    console.log(`[FulfillmentOrders] attempt ${attempt}/${MAX_ATTEMPTS}: ${allFOs.length} FO(s) for ${items.length} line item(s)`)
+
+    if (allFOs.length >= items.length) break
+  }
+
+  console.log('[FulfillmentOrders] final:', JSON.stringify(allFOs.map(fo => ({
     id: fo.id,
     status: fo.status,
     request_status: fo.request_status,
@@ -104,12 +119,15 @@ export async function POST(req: NextRequest) {
   // Digital Downloads registers as an external fulfillment service.
   // We must send a fulfillment_request to it (not create a fulfillment directly).
   // This is what triggers the "Automatically send files" per-product setting.
+  // Include both 'unsubmitted' and 'submitted' so FOs that Digital Downloads
+  // has already touched (but not fully processed) are not skipped.
   const requestable = allFOs.filter(fo =>
-    fo.status === 'open' && fo.request_status === 'unsubmitted',
+    fo.status === 'open' &&
+    (fo.request_status === 'unsubmitted' || fo.request_status === 'submitted'),
   )
 
   for (const fo of requestable) {
-    console.log(`[FulfillmentRequest] sending request to FO ${fo.id} (service: ${fo.fulfillment_service_handle})`)
+    console.log(`[FulfillmentRequest] FO ${fo.id} (service: ${fo.fulfillment_service_handle}, request_status: ${fo.request_status})`)
 
     const frRes  = await fetch(`${base}/fulfillment_orders/${fo.id}/fulfillment_request.json`, {
       method: 'POST',
@@ -118,11 +136,11 @@ export async function POST(req: NextRequest) {
     })
     const frData = await frRes.json()
 
-    console.log(`[FulfillmentRequest] FO ${fo.id} → status ${frRes.status}:`, JSON.stringify(frData))
+    console.log(`[FulfillmentRequest] FO ${fo.id} → HTTP ${frRes.status}:`, JSON.stringify(frData))
   }
 
   if (requestable.length === 0) {
-    console.warn('[FulfillmentRequest] no requestable FOs found — DD may have auto-processed or FOs have unexpected status')
+    console.warn('[FulfillmentRequest] no requestable FOs found — DD may have auto-processed or all FOs have unexpected status')
   }
 
   return NextResponse.json({ orderId })
