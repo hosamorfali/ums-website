@@ -213,69 +213,95 @@ export async function POST(req: NextRequest) {
   }
 
   // ── 3. Resolve per-item Digital Downloads page URLs ─────────────────────
-  // tracking_url on DD fulfillments returns the Shopify order status page
-  // (wrong). DD's actual per-order download page lives at:
-  //   https://{shop_domain}/apps/downloads/{tracking_number}
-  // tracking_number on the fulfillment is the unique token DD generates per
-  // line item. If that is also absent, fall back to product metafields, then
-  // to orderStatusUrl as a last resort.
+  // Fetch the full order to expose ALL fields where DD might store the token:
+  // note_attributes, line_item properties, and raw fulfillment receipt/tracking.
+  const fullOrderRes  = await fetch(`${base}/orders/${orderId}.json`, { headers })
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fullOrder: any = (await fullOrderRes.json()).order ?? {}
 
-  // Build a map: variant_id → { tracking_number, tracking_url } from fulfillments
-  const fulfillmentByVariant = new Map<string, { trackingNumber: string | null; trackingUrl: string | null }>()
-  for (const f of createdFulfillments) {
-    for (const li of (f.line_items ?? [])) {
-      fulfillmentByVariant.set(String(li.variant_id), {
-        trackingNumber: f.tracking_number,
-        trackingUrl:    f.tracking_url,
-      })
-    }
-  }
-  console.log('[Fulfillments] tracking data:', JSON.stringify([...fulfillmentByVariant.entries()]))
+  // Log raw data so we can see exactly what DD stores
+  console.log('[RawOrder] note_attributes:', JSON.stringify(fullOrder.note_attributes))
+  console.log('[RawOrder] line_items props:', JSON.stringify(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (fullOrder.line_items ?? []).map((li: any) => ({ variant_id: li.variant_id, name: li.name, properties: li.properties }))
+  ))
+  console.log('[RawOrder] fulfillments:', JSON.stringify(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (fullOrder.fulfillments ?? []).map((f: any) => ({
+      id: f.id,
+      service: f.service,
+      tracking_number: f.tracking_number,
+      tracking_url: f.tracking_url,
+      tracking_urls: f.tracking_urls,
+      receipt: f.receipt,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      line_items: (f.line_items ?? []).map((li: any) => ({ variant_id: li.variant_id, properties: li.properties })),
+    }))
+  ))
 
+  // Build variant → download URL from every known DD storage location
   const variantToUrl = new Map<string, string>()
 
-  for (const item of items) {
-    let downloadUrl = orderStatusUrl
-    const ft = fulfillmentByVariant.get(item.shopifyVariantId)
-
-    // Priority 1: construct the DD download page from tracking_number token
-    if (ft?.trackingNumber) {
-      downloadUrl = `https://${domain}/apps/downloads/${ft.trackingNumber}`
-      console.log(`[DownloadURL] ${item.name} → DD page via tracking_number: ${downloadUrl}`)
-      variantToUrl.set(item.shopifyVariantId, downloadUrl)
-      continue
+  // Source A: order note_attributes — DD sometimes stores download URLs here
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const attr of (fullOrder.note_attributes ?? []) as any[]) {
+    if (typeof attr.value === 'string' && attr.value.includes('/apps/downloads/')) {
+      // attribute name format is typically "_download_{variant_id}" or similar
+      console.log('[NoteAttr] found download URL:', attr.name, '→', attr.value)
     }
+  }
 
-    // Priority 2: tracking_url if it points to an /apps/downloads/ page (not order status)
-    if (ft?.trackingUrl && ft.trackingUrl.includes('/apps/downloads/')) {
-      downloadUrl = ft.trackingUrl
-      console.log(`[DownloadURL] ${item.name} → DD page via tracking_url: ${downloadUrl}`)
-      variantToUrl.set(item.shopifyVariantId, downloadUrl)
-      continue
+  // Source B: order line item properties
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const li of (fullOrder.line_items ?? []) as any[]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const dlProp = (li.properties ?? []).find((p: any) =>
+      typeof p.value === 'string' && p.value.includes('/apps/downloads/')
+    )
+    if (dlProp) {
+      console.log(`[LineItemProp] variant ${li.variant_id} download URL:`, dlProp.value)
+      variantToUrl.set(String(li.variant_id), dlProp.value)
     }
+  }
 
-    // Priority 3: product metafields (raw CDN file URL from DD)
-    if (item.shopifyVariantId) {
-      try {
-        const varRes  = await fetch(`${base}/variants/${item.shopifyVariantId}.json`, { headers })
-        const varData = await varRes.json()
-        const productId: number | undefined = varData.variant?.product_id
-
-        if (productId) {
-          const pmRes  = await fetch(`${base}/products/${productId}/metafields.json`, { headers })
-          const pmData = await pmRes.json()
-          const pmfs: ShopifyMetafield[] = pmData.metafields ?? []
-          console.log(`[Metafields] product ${productId}:`, JSON.stringify(pmfs))
-          const pUrl = extractFileUrl(pmfs)
-          if (pUrl) { downloadUrl = pUrl }
-        }
-      } catch (e) {
-        console.error(`[Metafields] error for variant ${item.shopifyVariantId}:`, e)
+  // Source C: fulfillment tracking_number / tracking_url
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  for (const f of (fullOrder.fulfillments ?? []) as any[]) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    for (const li of (f.line_items ?? []) as any[]) {
+      if (variantToUrl.has(String(li.variant_id))) continue
+      if (f.tracking_number) {
+        variantToUrl.set(String(li.variant_id), `https://${domain}/apps/downloads/${f.tracking_number}`)
+      } else if (typeof f.tracking_url === 'string' && f.tracking_url.includes('/apps/downloads/')) {
+        variantToUrl.set(String(li.variant_id), f.tracking_url)
       }
     }
+  }
 
-    console.log(`[DownloadURL] ${item.name} → fallback: ${downloadUrl}`)
-    variantToUrl.set(item.shopifyVariantId, downloadUrl)
+  // Source D: product metafields (raw CDN file URL — direct download, no DD branded page)
+  for (const item of items) {
+    if (variantToUrl.has(item.shopifyVariantId)) continue
+    try {
+      const varRes  = await fetch(`${base}/variants/${item.shopifyVariantId}.json`, { headers })
+      const varData = await varRes.json()
+      const productId: number | undefined = varData.variant?.product_id
+      if (productId) {
+        const pmRes  = await fetch(`${base}/products/${productId}/metafields.json`, { headers })
+        const pmData = await pmRes.json()
+        const pmfs: ShopifyMetafield[] = pmData.metafields ?? []
+        const pUrl = extractFileUrl(pmfs)
+        if (pUrl) variantToUrl.set(item.shopifyVariantId, pUrl)
+      }
+    } catch (e) {
+      console.error(`[Metafields] error for variant ${item.shopifyVariantId}:`, e)
+    }
+  }
+
+  // Final resolved URLs
+  for (const item of items) {
+    const url = variantToUrl.get(item.shopifyVariantId) ?? orderStatusUrl
+    console.log(`[DownloadURL] ${item.name} → ${url}`)
+    if (!variantToUrl.has(item.shopifyVariantId)) variantToUrl.set(item.shopifyVariantId, orderStatusUrl)
   }
 
   const downloadLinksHtml = items
