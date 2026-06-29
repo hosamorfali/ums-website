@@ -26,7 +26,7 @@ export const CATEGORIES: Category[] = [
   { id: 'diagnostic',         name: 'Diagnostic Frameworks',           active: false },
   { id: 'signature',          name: 'Signature Frameworks',            active: false },
   { id: 'operating-model',    name: 'Operating Model & Governance',    active: false },
-  { id: 'project-management', name: 'Project Management',              active: false },
+  { id: 'project-management', name: 'Project Management',              active: true  },
   { id: 'marketing-comms',    name: 'Marketing & Communication',       active: false },
   { id: 'sponsorship',        name: 'Sponsorship',                     active: false },
 ]
