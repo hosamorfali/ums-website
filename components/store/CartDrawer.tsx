@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { AnimatePresence, m } from 'framer-motion'
 import Image from 'next/image'
 import { X, Trash2, ArrowRight, Package } from 'lucide-react'
@@ -41,7 +41,39 @@ export function CartDrawer({ onOpenTemplate }: Props) {
     ? TEMPLATES.filter(t => t.category === kitTemplate.category && !t.isKit).reduce((s, t) => s + t.price, 0) - kitTemplate.price
     : 0
 
+  // Dummy history state guard — prevents browser back-swipe from navigating away.
+  // When the cart opens, we push a dummy history entry so the browser's back gesture
+  // pops that entry instead of leaving the page. When the cart closes normally (X,
+  // backdrop, or swipe), we call history.back() to clean up the dummy entry.
+  // When the browser back fires first (popstate), we close the drawer instead.
+  const historyPushedRef = useRef(false)
+
+  useEffect(() => {
+    if (drawerOpen && !historyPushedRef.current) {
+      history.pushState({ cartOpen: true }, '')
+      historyPushedRef.current = true
+    }
+  }, [drawerOpen])
+
+  useEffect(() => {
+    const onPopState = () => {
+      if (!historyPushedRef.current) return
+      // Browser popped our dummy state — close drawer without calling history.back()
+      historyPushedRef.current = false
+      closeDrawer()
+      setStep('cart')
+      setEmailErr('')
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
+  }, [closeDrawer])
+
   const handleClose = useCallback(() => {
+    // If we pushed a dummy history entry, pop it before closing
+    if (historyPushedRef.current) {
+      historyPushedRef.current = false
+      history.back()
+    }
     closeDrawer()
     setStep('cart')
     setEmailErr('')
