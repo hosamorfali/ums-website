@@ -548,7 +548,7 @@ export const TEMPLATES: Template[] = [
       'Creating a clear project foundation before planning begins',
     ],
     pairsWith: ['project-plan-cps'],
-    shopifyVariantId: '',
+    shopifyVariantId: '8535021289651',
   },
   {
     id: 'project-plan-cps',
@@ -569,7 +569,7 @@ export const TEMPLATES: Template[] = [
       'Tracking execution progress against planned commitments',
     ],
     pairsWith: ['project-status-update-timeline'],
-    shopifyVariantId: '',
+    shopifyVariantId: '8535023550643',
   },
   {
     id: 'budget-cost-tracker',
@@ -590,7 +590,7 @@ export const TEMPLATES: Template[] = [
       'Identifying overspend, remaining budget, and financial risks early',
     ],
     pairsWith: ['project-status-update-timeline'],
-    shopifyVariantId: '',
+    shopifyVariantId: '8535024173235',
   },
   {
     id: 'minutes-of-meetings',
@@ -611,7 +611,7 @@ export const TEMPLATES: Template[] = [
       'Following up on responsibilities before the next meeting',
     ],
     pairsWith: ['project-plan-cps'],
-    shopifyVariantId: '',
+    shopifyVariantId: '8535024238771',
   },
   {
     id: 'project-status-update-timeline',
@@ -633,7 +633,7 @@ export const TEMPLATES: Template[] = [
       'Keeping sponsors and stakeholders aligned on project health',
     ],
     pairsWith: ['project-plan-cps'],
-    shopifyVariantId: '',
+    shopifyVariantId: '8535024271539',
   },
   {
     id: 'kpi-tracker-dashboard',
@@ -654,7 +654,7 @@ export const TEMPLATES: Template[] = [
       'Highlighting underperforming areas that need management attention',
     ],
     pairsWith: ['project-status-update-timeline'],
-    shopifyVariantId: '',
+    shopifyVariantId: '8535024337075',
   },
   {
     id: 'project-management-kit',
@@ -671,7 +671,7 @@ export const TEMPLATES: Template[] = [
     ],
     builtFor: [],
     pairsWith: [],
-    shopifyVariantId: '',
+    shopifyVariantId: '8535024402611',
   },
 ]
 
