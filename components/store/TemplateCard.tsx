@@ -50,13 +50,16 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const lbTouchStartY      = useRef(0)
   const backdropTouchStart = useRef<{ x: number; y: number } | null>(null)
 
-  // Global multi-touch guard — set true whenever ≥2 fingers are on screen anywhere.
-  // Using a document-level listener so we catch the case where finger 1 lands on the
-  // backdrop and finger 2 lands on the card: the backdrop's own onTouchStart only sees
-  // the first finger (single-touch), but the document listener sees both.
-  const multiTouchActiveRef = useRef(false)
+  // Global multi-touch guard.
+  // multiTouchActiveRef: true while ≥2 fingers are anywhere on screen.
+  // multiTouchEndTimeRef: timestamp of the last multi-touch release.
+  //   Used to block the browser's synthetic click that fires ~300ms after
+  //   a pinch ends — by that point multiTouchActiveRef is already false,
+  //   so we need the timestamp to detect "was this click born from a pinch?"
+  const multiTouchActiveRef  = useRef(false)
+  const multiTouchEndTimeRef = useRef(0)
 
-  // Image pinch-zoom state — stored as refs to avoid re-renders on every frame.
+  // ── Card preview image — pinch-zoom state ────────────────────────────────
   const imgScaleRef         = useRef(1)
   const imgTransXRef        = useRef(0)
   const imgTransYRef        = useRef(0)
@@ -69,6 +72,19 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const imageWrapRef        = useRef<HTMLDivElement>(null)
   const imgInnerRef         = useRef<HTMLDivElement>(null)
 
+  // ── Lightbox image — pinch-zoom state ────────────────────────────────────
+  const lbImgScaleRef       = useRef(1)
+  const lbImgTransXRef      = useRef(0)
+  const lbImgTransYRef      = useRef(0)
+  const lbPinchInitDistRef  = useRef(0)
+  const lbPinchInitScaleRef = useRef(1)
+  const lbPanStartXRef      = useRef(0)
+  const lbPanStartYRef      = useRef(0)
+  const lbPanStartTransXRef = useRef(0)
+  const lbPanStartTransYRef = useRef(0)
+  const lbImageWrapRef      = useRef<HTMLDivElement>(null)
+  const lbImgInnerRef       = useRef<HTMLDivElement>(null)
+
   // Reset state when template changes
   const prevId = useRef(template.id)
   if (template.id !== prevId.current) {
@@ -77,17 +93,14 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     setExpanded(false)
     setLightboxOpen(false)
     setAddedFlash(false)
-    // Reset zoom
-    imgScaleRef.current   = 1
-    imgTransXRef.current  = 0
-    imgTransYRef.current  = 0
+    imgScaleRef.current  = 1
+    imgTransXRef.current = 0
+    imgTransYRef.current = 0
     if (imgInnerRef.current) imgInnerRef.current.style.transform = ''
   }
 
   const handleAddToCart = useCallback(() => {
     addItem(template)
-    // On mobile: close the card immediately and open the cart drawer
-    // so the two panels don't overlap and the cart is directly accessible.
     if (typeof window !== 'undefined' && window.innerWidth < 768) {
       onClose()
       openDrawer()
@@ -114,8 +127,29 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     setLightboxOpen(true)
   }, [])
 
-  const lbPrev = useCallback(() => setLightboxIdx(i => (i - 1 + images.length) % images.length), [images.length])
-  const lbNext = useCallback(() => setLightboxIdx(i => (i + 1) % images.length), [images.length])
+  const resetLbZoom = useCallback(() => {
+    lbImgScaleRef.current  = 1
+    lbImgTransXRef.current = 0
+    lbImgTransYRef.current = 0
+    if (lbImgInnerRef.current) lbImgInnerRef.current.style.transform = ''
+    if (lbImageWrapRef.current) lbImageWrapRef.current.style.cursor = 'default'
+  }, [])
+
+  const closeLightbox = useCallback(() => {
+    setLightboxOpen(false)
+    resetLbZoom()
+  }, [resetLbZoom])
+
+  // Reset lightbox zoom whenever the image index changes
+  const lbPrev = useCallback(() => {
+    setLightboxIdx(i => (i - 1 + images.length) % images.length)
+    resetLbZoom()
+  }, [images.length, resetLbZoom])
+
+  const lbNext = useCallback(() => {
+    setLightboxIdx(i => (i + 1) % images.length)
+    resetLbZoom()
+  }, [images.length, resetLbZoom])
 
   // Lock background scroll on mobile while card is open
   useEffect(() => {
@@ -128,22 +162,27 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   useEffect(() => {
     if (!lightboxOpen) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape')      setLightboxOpen(false)
+      if (e.key === 'Escape')      closeLightbox()
       if (e.key === 'ArrowLeft')   lbPrev()
       if (e.key === 'ArrowRight')  lbNext()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [lightboxOpen, lbPrev, lbNext])
+  }, [lightboxOpen, closeLightbox, lbPrev, lbNext])
 
-  // Global multi-touch tracker — fires on document so it catches every finger regardless
-  // of which element each touch lands on.
+  // Global multi-touch tracker — fires on document so it catches every finger
+  // regardless of which element each touch lands on.
   useEffect(() => {
     const onStart = (e: TouchEvent) => {
       if (e.touches.length > 1) multiTouchActiveRef.current = true
     }
     const onEnd = (e: TouchEvent) => {
-      if (e.touches.length === 0) multiTouchActiveRef.current = false
+      if (e.touches.length === 0) {
+        // Record the time the last pinch ended so onClick handlers can block
+        // the browser's synthetic click that fires ~300ms later.
+        if (multiTouchActiveRef.current) multiTouchEndTimeRef.current = Date.now()
+        multiTouchActiveRef.current = false
+      }
     }
     document.addEventListener('touchstart', onStart, { passive: true })
     document.addEventListener('touchend',   onEnd,   { passive: true })
@@ -153,9 +192,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     }
   }, [])
 
-  // Pinch-zoom + pan on the preview image.
-  // Uses a non-passive touchmove listener (unavailable in React's synthetic events)
-  // so we can call e.preventDefault() and suppress scroll/browser-zoom while pinching.
+  // Pinch-zoom + pan on the card preview image.
   useEffect(() => {
     const wrap  = imageWrapRef.current
     const inner = imgInnerRef.current
@@ -167,7 +204,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
       return Math.sqrt(dx * dx + dy * dy)
     }
 
-    const applyTransform = () => {
+    const apply = () => {
       inner.style.transform = `scale(${imgScaleRef.current}) translate(${imgTransXRef.current}px, ${imgTransYRef.current}px)`
       wrap.style.cursor     = imgScaleRef.current > 1 ? 'grab' : 'zoom-in'
     }
@@ -177,7 +214,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         pinchInitDistRef.current  = pinchDist(e.touches)
         pinchInitScaleRef.current = imgScaleRef.current
       } else if (e.touches.length === 1 && imgScaleRef.current > 1) {
-        // Start panning while zoomed
         panStartXRef.current      = e.touches[0].clientX
         panStartYRef.current      = e.touches[0].clientY
         panStartTransXRef.current = imgTransXRef.current
@@ -188,28 +224,24 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
     const onMove = (e: TouchEvent) => {
       if (e.touches.length >= 2) {
         e.preventDefault()
-        const ratio = pinchDist(e.touches) / pinchInitDistRef.current
-        imgScaleRef.current = Math.max(1, Math.min(4, pinchInitScaleRef.current * ratio))
-        applyTransform()
+        imgScaleRef.current = Math.max(1, Math.min(4, pinchInitScaleRef.current * (pinchDist(e.touches) / pinchInitDistRef.current)))
+        apply()
       } else if (e.touches.length === 1 && imgScaleRef.current > 1) {
         e.preventDefault()
-        // Translate in unscaled coordinates so 1px of finger movement = 1px of pan
         imgTransXRef.current = panStartTransXRef.current + (e.touches[0].clientX - panStartXRef.current) / imgScaleRef.current
         imgTransYRef.current = panStartTransYRef.current + (e.touches[0].clientY - panStartYRef.current) / imgScaleRef.current
-        applyTransform()
+        apply()
       }
     }
 
     const onEnd = (e: TouchEvent) => {
       if (e.touches.length === 0 && imgScaleRef.current <= 1.05) {
-        // Snap back to natural scale
         imgScaleRef.current  = 1
         imgTransXRef.current = 0
         imgTransYRef.current = 0
         inner.style.transform = ''
         wrap.style.cursor     = 'zoom-in'
       } else if (e.touches.length === 1 && imgScaleRef.current > 1) {
-        // One finger lifted during pinch — pivot to panning with the remaining finger
         panStartXRef.current      = e.touches[0].clientX
         panStartYRef.current      = e.touches[0].clientY
         panStartTransXRef.current = imgTransXRef.current
@@ -226,9 +258,79 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
       wrap.removeEventListener('touchmove',  onMove)
       wrap.removeEventListener('touchend',   onEnd)
     }
-  }, []) // refs are stable; no deps needed
+  }, [])
 
-  // ── Outer: fixed full-screen centering wrapper (opacity transition via AnimatePresence)
+  // Pinch-zoom + pan on the lightbox image.
+  // Re-attaches whenever the lightbox opens (the DOM node is only present then).
+  useEffect(() => {
+    if (!lightboxOpen) return
+    const wrap  = lbImageWrapRef.current
+    const inner = lbImgInnerRef.current
+    if (!wrap || !inner) return
+
+    const pinchDist = (t: TouchList) => {
+      const dx = t[0].clientX - t[1].clientX
+      const dy = t[0].clientY - t[1].clientY
+      return Math.sqrt(dx * dx + dy * dy)
+    }
+
+    const apply = () => {
+      inner.style.transform = `scale(${lbImgScaleRef.current}) translate(${lbImgTransXRef.current}px, ${lbImgTransYRef.current}px)`
+      wrap.style.cursor     = lbImgScaleRef.current > 1 ? 'grab' : 'default'
+    }
+
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length === 2) {
+        lbPinchInitDistRef.current  = pinchDist(e.touches)
+        lbPinchInitScaleRef.current = lbImgScaleRef.current
+      } else if (e.touches.length === 1 && lbImgScaleRef.current > 1) {
+        lbPanStartXRef.current      = e.touches[0].clientX
+        lbPanStartYRef.current      = e.touches[0].clientY
+        lbPanStartTransXRef.current = lbImgTransXRef.current
+        lbPanStartTransYRef.current = lbImgTransYRef.current
+      }
+    }
+
+    const onMove = (e: TouchEvent) => {
+      if (e.touches.length >= 2) {
+        e.preventDefault()
+        lbImgScaleRef.current = Math.max(1, Math.min(4, lbPinchInitScaleRef.current * (pinchDist(e.touches) / lbPinchInitDistRef.current)))
+        apply()
+      } else if (e.touches.length === 1 && lbImgScaleRef.current > 1) {
+        e.preventDefault()
+        lbImgTransXRef.current = lbPanStartTransXRef.current + (e.touches[0].clientX - lbPanStartXRef.current) / lbImgScaleRef.current
+        lbImgTransYRef.current = lbPanStartTransYRef.current + (e.touches[0].clientY - lbPanStartYRef.current) / lbImgScaleRef.current
+        apply()
+      }
+    }
+
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0 && lbImgScaleRef.current <= 1.05) {
+        lbImgScaleRef.current  = 1
+        lbImgTransXRef.current = 0
+        lbImgTransYRef.current = 0
+        inner.style.transform  = ''
+        wrap.style.cursor      = 'default'
+      } else if (e.touches.length === 1 && lbImgScaleRef.current > 1) {
+        lbPanStartXRef.current      = e.touches[0].clientX
+        lbPanStartYRef.current      = e.touches[0].clientY
+        lbPanStartTransXRef.current = lbImgTransXRef.current
+        lbPanStartTransYRef.current = lbImgTransYRef.current
+      }
+    }
+
+    wrap.addEventListener('touchstart', onStart, { passive: true })
+    wrap.addEventListener('touchmove',  onMove,  { passive: false })
+    wrap.addEventListener('touchend',   onEnd,   { passive: true })
+
+    return () => {
+      wrap.removeEventListener('touchstart', onStart)
+      wrap.removeEventListener('touchmove',  onMove)
+      wrap.removeEventListener('touchend',   onEnd)
+    }
+  }, [lightboxOpen])
+
+  // ── Outer: fixed full-screen centering wrapper ────────────────────────────
   return (
     <>
     {/* Mobile-only backdrop — only closes on a deliberate single-finger tap */}
@@ -241,9 +343,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           : null
       }}
       onTouchEnd={e => {
-        // multiTouchActiveRef catches the case where finger 1 landed here (single-touch
-        // onTouchStart) but finger 2 landed on the card — the backdrop never saw that
-        // second touchstart, but the document-level listener did.
         const start = backdropTouchStart.current
         if (!start || multiTouchActiveRef.current) return
         if (e.changedTouches.length !== 1) return
@@ -269,7 +368,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         pointerEvents: 'none',
       }}
     >
-      {/* ── Inner: draggable element (scale transition) */}
       <m.div
         drag
         dragControls={dragControls}
@@ -289,7 +387,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           pointerEvents: 'all',
         }}
       >
-        {/* Left nav arrow — desktop only (outside card); hidden on mobile */}
+        {/* Left nav arrow — desktop only */}
         {onPrev && (
           <div className="hidden md:block">
             <button
@@ -312,7 +410,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           }}
           onTouchEnd={e => {
             if (window.innerWidth >= 768) return
-            // Block carousel swipe on any multi-touch gesture or when image is zoomed
             if (multiTouchActiveRef.current || e.touches.length > 0) return
             if (imgScaleRef.current > 1) return
             const dx = e.changedTouches[0].clientX - touchStartX.current
@@ -341,7 +438,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             className="flex items-center px-3 pt-3 pb-1"
             style={{ borderBottom: '1px solid #2A2825', cursor: 'grab' }}
           >
-            {/* Mobile: prev arrow + label */}
             <div className="md:hidden flex-none flex justify-start">
               {onPrev ? (
                 <button
@@ -357,12 +453,10 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               ) : <span />}
             </div>
 
-            {/* Centre: drag pill */}
             <div className="flex-1 flex justify-center">
               <div className="w-8 h-1 rounded-full bg-ums-border" />
             </div>
 
-            {/* Mobile: next arrow + label */}
             <div className="md:hidden flex-none flex justify-end">
               {onNext ? (
                 <button
@@ -378,7 +472,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               ) : <span />}
             </div>
 
-            {/* Mobile: X close — far right, in handle so it never overlaps arrows */}
             <button
               onPointerDown={e => e.stopPropagation()}
               onClick={e => { e.stopPropagation(); onClose() }}
@@ -390,7 +483,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             </button>
           </div>
 
-          {/* Close button — desktop only (absolute positioned) */}
+          {/* Close button — desktop only */}
           <button
             onClick={onClose}
             className="hidden md:flex absolute top-3 right-3 z-10 items-center justify-center w-7 h-7 rounded-full hover:bg-ums-border/40 transition-colors"
@@ -399,7 +492,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             <X size={14} />
           </button>
 
-          {/* Preview image — drag from here too; gallery always visible */}
+          {/* Preview image */}
           <div
             onPointerDown={e => dragControls.start(e)}
             className="relative w-full"
@@ -407,20 +500,12 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           >
             {images.length > 0 ? (
               <>
-                {/*
-                  imageWrapRef: receives the pinch-zoom useEffect listeners.
-                  touch-action: none so we capture all touch events (including
-                  pinch) and call e.preventDefault() in touchmove ourselves.
-                  overflow: hidden clips the image when it's panned/zoomed.
-                  imgInnerRef: the element whose CSS transform we update directly
-                  (no React re-renders) on every pinch/pan frame.
-                */}
                 <div
                   ref={imageWrapRef}
                   onPointerDown={e => e.stopPropagation()}
                   onClick={e => {
                     e.stopPropagation()
-                    if (imgScaleRef.current > 1) return  // tap while zoomed = pan intent, not lightbox
+                    if (imgScaleRef.current > 1) return
                     openLightbox(imgIndex)
                   }}
                   className="absolute inset-0 z-[1] group overflow-hidden"
@@ -483,9 +568,8 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             )}
           </div>
 
-          {/* Content — scrollable, no drag interference */}
+          {/* Content */}
           <div className="p-5 flex flex-col gap-4" style={{ cursor: 'default' }}>
-            {/* Category + name */}
             <div>
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ums-gold mb-1.5">
                 {template.isKit ? 'Bundle Kit' : categoryLabel}
@@ -495,14 +579,12 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               </h2>
             </div>
 
-            {/* Kit opening / tagline */}
             {template.isKit ? (
               <p className="text-xs leading-relaxed text-ums-muted">{kitContent?.opening ?? template.tagline}</p>
             ) : (
               <p className="text-xs leading-relaxed text-ums-muted line-clamp-2">{template.tagline}</p>
             )}
 
-            {/* Kit contents */}
             {template.isKit && kitContent && (
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ums-gold mb-2">Contains</p>
@@ -516,7 +598,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               </div>
             )}
 
-            {/* Price */}
             <div className="flex items-baseline gap-1">
               <span className="text-xl font-bold text-ums-gold">SAR {template.price.toLocaleString()}</span>
               {template.isKit && kitSavings > 0 && (
@@ -524,7 +605,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               )}
             </div>
 
-            {/* ── State 1 buttons ── */}
             {!expanded && (
               <div className="flex gap-3">
                 <button
@@ -547,10 +627,8 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               </div>
             )}
 
-            {/* ── State 2 expanded content ── */}
             {expanded && (
               <div className="flex flex-col gap-4">
-                {/* Built For */}
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ums-gold mb-2">Built For</p>
                   <div className="flex flex-wrap gap-1.5">
@@ -566,7 +644,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                   </div>
                 </div>
 
-                {/* What You Receive */}
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ums-gold mb-2">What You Receive</p>
                   <ul className="flex flex-col gap-1">
@@ -578,7 +655,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                   </ul>
                 </div>
 
-                {/* Pairs With */}
                 {!template.isKit && (pairedTemplates.length > 0 || kitTemplate) && (
                   <div>
                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ums-gold mb-2">Pairs With</p>
@@ -606,7 +682,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                   </div>
                 )}
 
-                {/* Full-width Add to Cart */}
                 <button
                   onClick={handleAddToCart}
                   className="w-full flex items-center justify-center gap-2 rounded-md py-3 text-xs font-bold uppercase tracking-[0.15em] transition-opacity hover:opacity-90 cursor-pointer"
@@ -621,7 +696,6 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                   Complexity into Clarity. Crafted to Impress.
                 </p>
 
-                {/* Collapse */}
                 <button
                   onClick={() => setExpanded(false)}
                   className="flex items-center justify-center gap-1 text-xs text-ums-muted hover:text-ums-gold transition-colors"
@@ -634,7 +708,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           </div>
         </div>
 
-        {/* Right nav arrow — desktop only (outside card); hidden on mobile */}
+        {/* Right nav arrow — desktop only */}
         {onNext && (
           <div className="hidden md:block">
             <button
@@ -658,7 +732,13 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}
-            onClick={() => setLightboxOpen(false)}
+            onClick={e => {
+              // Block the synthetic click that browsers fire ~300ms after a pinch ends.
+              // By that point multiTouchActiveRef is already false, so we use the
+              // timestamp of the last multi-touch release as a gate instead.
+              if (Date.now() - multiTouchEndTimeRef.current < 400) return
+              closeLightbox()
+            }}
             onTouchStart={e => {
               if (e.touches.length === 1) {
                 lbTouchStartX.current = e.touches[0].clientX
@@ -666,7 +746,10 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               }
             }}
             onTouchEnd={e => {
+              // Block on any multi-touch gesture, when fingers are still down,
+              // or while the lightbox image is zoomed (pan intent, not swipe)
               if (multiTouchActiveRef.current || e.touches.length > 0) return
+              if (lbImgScaleRef.current > 1) return
               const dx = e.changedTouches[0].clientX - lbTouchStartX.current
               const dy = e.changedTouches[0].clientY - lbTouchStartY.current
               if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
@@ -684,9 +767,9 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               justifyContent: 'center',
             }}
           >
-            {/* Close */}
+            {/* Close button */}
             <button
-              onClick={e => { e.stopPropagation(); setLightboxOpen(false) }}
+              onClick={e => { e.stopPropagation(); closeLightbox() }}
               className="absolute top-5 right-5 flex items-center justify-center w-9 h-9 rounded-full hover:bg-white/10 transition-colors"
               style={{ color: '#AB9C7D', cursor: 'pointer', zIndex: 1 }}
               aria-label="Close lightbox"
@@ -694,18 +777,38 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
               <X size={18} />
             </button>
 
-            {/* Image */}
+            {/*
+              lbImageWrapRef: receives the lightbox pinch-zoom useEffect listeners.
+              touch-action: none so all touch events (including pinch) reach JS.
+              overflow: hidden clips the image during pan/zoom.
+              lbImgInnerRef: CSS transform is updated directly on every pinch/pan
+              frame — no React re-renders.
+            */}
             <div
+              ref={lbImageWrapRef}
               onClick={e => e.stopPropagation()}
-              style={{ position: 'relative', maxWidth: '90vw', maxHeight: '85vh', width: '100%', height: '100%' }}
+              style={{
+                position:    'relative',
+                maxWidth:    '90vw',
+                maxHeight:   '85vh',
+                width:       '100%',
+                height:      '100%',
+                overflow:    'hidden',
+                touchAction: 'none',
+              }}
             >
-              <Image
-                src={images[lightboxIdx]}
-                alt={`${template.shortName} preview ${lightboxIdx + 1}`}
-                fill
-                className="object-contain"
-                unoptimized
-              />
+              <div
+                ref={lbImgInnerRef}
+                style={{ width: '100%', height: '100%', transformOrigin: 'center' }}
+              >
+                <Image
+                  src={images[lightboxIdx]}
+                  alt={`${template.shortName} preview ${lightboxIdx + 1}`}
+                  fill
+                  className="object-contain"
+                  unoptimized
+                />
+              </div>
             </div>
 
             {/* Left arrow */}
@@ -741,7 +844,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                 {images.map((_, i) => (
                   <button
                     key={i}
-                    onClick={e => { e.stopPropagation(); setLightboxIdx(i) }}
+                    onClick={e => { e.stopPropagation(); setLightboxIdx(i); resetLbZoom() }}
                     className="w-2 h-2 rounded-full transition-all"
                     style={{ background: i === lightboxIdx ? '#AB9C7D' : 'rgba(171,156,125,0.35)', cursor: 'pointer' }}
                     aria-label={`Image ${i + 1}`}
