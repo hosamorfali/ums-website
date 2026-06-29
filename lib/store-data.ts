@@ -534,7 +534,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Project Scope of Work',
     category: 'project-management',
     tagline: "Define the project's purpose, deliverables, boundaries, assumptions, and success expectations before execution begins",
-    price: 200,
+    price: 1,
     isKit: false,
     images: [
       '/images/Template Images/Project Management/The Project Scope of Work Framework/Project_Scope_of_Work_Preview_1.PNG',
@@ -662,7 +662,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Project Management Kit',
     category: 'project-management',
     tagline: 'Everything your project needs to define the scope, plan the work, track the budget, manage meetings, report progress, and monitor performance',
-    price: 900,
+    price: 1,
     isKit: true,
     images: [
       '/images/Template Images/Project Management/The Project Management Kit/Project_Management_Kit_Preview_1.PNG',
