@@ -14,12 +14,18 @@ interface OrderBody {
   paymentId?: string
 }
 
+interface ShopifyFulfillmentOrderLineItem {
+  id:       number
+  quantity: number
+}
+
 interface ShopifyFulfillmentOrder {
   id:                         number
   status:                     string
   request_status:             string
   assigned_location_id:       number
   fulfillment_service_handle: string | null
+  line_items:                 ShopifyFulfillmentOrderLineItem[]
 }
 
 export async function POST(req: NextRequest) {
@@ -115,31 +121,46 @@ export async function POST(req: NextRequest) {
     service: fo.fulfillment_service_handle,
   }))))
 
-  // ── 3. Send fulfillment request to Digital Downloads service ─────────────
-  // Digital Downloads registers as an external fulfillment service.
-  // We must send a fulfillment_request to it (not create a fulfillment directly).
-  // This is what triggers the "Automatically send files" per-product setting.
-  // Include both 'unsubmitted' and 'submitted' so FOs that Digital Downloads
-  // has already touched (but not fully processed) are not skipped.
+  // ── 3. Send one fulfillment request per line item ────────────────────────
+  // Digital Downloads creates one email per fulfillment (not per order).
+  // Sending a separate request scoped to each individual line item via
+  // fulfillment_order_line_items ensures each template gets its own email.
   const requestable = allFOs.filter(fo =>
     fo.status === 'open' &&
     (fo.request_status === 'unsubmitted' || fo.request_status === 'submitted'),
   )
 
+  let requestCount = 0
+
   for (const fo of requestable) {
-    console.log(`[FulfillmentRequest] FO ${fo.id} (service: ${fo.fulfillment_service_handle}, request_status: ${fo.request_status})`)
+    const lineItems = fo.line_items ?? []
 
-    const frRes  = await fetch(`${base}/fulfillment_orders/${fo.id}/fulfillment_request.json`, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ fulfillment_request: { message: 'Digital download — send files to customer.' } }),
-    })
-    const frData = await frRes.json()
+    for (const li of lineItems) {
+      console.log(`[FulfillmentRequest] FO ${fo.id} → line item ${li.id} (service: ${fo.fulfillment_service_handle})`)
 
-    console.log(`[FulfillmentRequest] FO ${fo.id} → HTTP ${frRes.status}:`, JSON.stringify(frData))
+      const frRes  = await fetch(`${base}/fulfillment_orders/${fo.id}/fulfillment_request.json`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          fulfillment_request: {
+            message: 'Digital download — send files to customer.',
+            fulfillment_order_line_items: [{ id: li.id, quantity: li.quantity }],
+          },
+        }),
+      })
+      const frData = await frRes.json()
+
+      console.log(`[FulfillmentRequest] line item ${li.id} → HTTP ${frRes.status}:`, JSON.stringify(frData))
+      requestCount++
+
+      // Brief pause so Shopify can process any FO split before the next request
+      if (lineItems.indexOf(li) < lineItems.length - 1) {
+        await new Promise(r => setTimeout(r, 500))
+      }
+    }
   }
 
-  if (requestable.length === 0) {
+  if (requestCount === 0) {
     console.warn('[FulfillmentRequest] no requestable FOs found — DD may have auto-processed or all FOs have unexpected status')
   }
 
