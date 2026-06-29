@@ -39,6 +39,49 @@ interface FulfillmentRecord {
   line_items:   FulfillmentLineItem[]
 }
 
+// Extracts a direct file URL from a Shopify metafields array.
+// Digital Downloads stores files under namespace "digital_downloads" with
+// key "file_attachment" or "files". The value may be a raw URL string,
+// a JSON object with a "url" property, or a Shopify File GID with a src.
+interface ShopifyMetafield {
+  namespace: string
+  key:       string
+  value:     string
+}
+
+function extractFileUrl(metafields: ShopifyMetafield[]): string | null {
+  const candidates = metafields.filter(mf =>
+    mf.namespace === 'digital_downloads' ||
+    mf.namespace === 'digital_download'   ||
+    mf.key       === 'file_attachment'    ||
+    mf.key       === 'files'
+  )
+
+  for (const mf of candidates) {
+    const raw = mf.value
+    if (!raw) continue
+
+    // Try JSON first
+    try {
+      const parsed: unknown = JSON.parse(raw)
+      if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+        const obj = parsed as Record<string, unknown>
+        const url = obj.url || obj.src || obj.download_url
+        if (typeof url === 'string' && url.startsWith('http')) return url
+      }
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const first = parsed[0] as Record<string, unknown>
+        const u = first?.url || first?.src || first?.download_url
+        if (typeof u === 'string' && u.startsWith('http')) return u
+      }
+    } catch {
+      if (raw.startsWith('http')) return raw
+    }
+  }
+
+  return null
+}
+
 export async function POST(req: NextRequest) {
   const body: OrderBody = await req.json()
   const { email, items, total, paymentId } = body
@@ -168,13 +211,54 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // ── 3. Build per-item download HTML ──────────────────────────────────────
+  // ── 3. Resolve direct download URLs via Digital Downloads metafields ──────
+  // tracking_url from DD fulfillments only returns the Shopify order status
+  // page, not a direct file link. The actual download URL is stored as a
+  // product-level metafield (namespace: digital_downloads) by the DD app.
+  // We query variant → product metafields in order until we find a file URL.
   const variantToUrl = new Map<string, string>()
-  for (const f of createdFulfillments) {
-    const url = f.tracking_url || orderStatusUrl
-    for (const li of (f.line_items ?? [])) {
-      variantToUrl.set(String(li.variant_id), url)
+
+  for (const item of items) {
+    let downloadUrl = orderStatusUrl
+
+    if (item.shopifyVariantId) {
+      // Step A: variant-level metafields
+      try {
+        const vmRes  = await fetch(`${base}/variants/${item.shopifyVariantId}/metafields.json`, { headers })
+        const vmData = await vmRes.json()
+        const vmfs: ShopifyMetafield[] = vmData.metafields ?? []
+        console.log(`[Metafields] variant ${item.shopifyVariantId} (${vmfs.length} fields):`, JSON.stringify(vmfs))
+
+        const vUrl = extractFileUrl(vmfs)
+        if (vUrl) { downloadUrl = vUrl }
+      } catch (e) {
+        console.error(`[Metafields] variant fetch error for ${item.shopifyVariantId}:`, e)
+      }
+
+      // Step B: product-level metafields (DD attaches files at product level)
+      if (downloadUrl === orderStatusUrl) {
+        try {
+          const varRes  = await fetch(`${base}/variants/${item.shopifyVariantId}.json`, { headers })
+          const varData = await varRes.json()
+          const productId: number | undefined = varData.variant?.product_id
+
+          if (productId) {
+            const pmRes  = await fetch(`${base}/products/${productId}/metafields.json`, { headers })
+            const pmData = await pmRes.json()
+            const pmfs: ShopifyMetafield[] = pmData.metafields ?? []
+            console.log(`[Metafields] product ${productId} (${pmfs.length} fields):`, JSON.stringify(pmfs))
+
+            const pUrl = extractFileUrl(pmfs)
+            if (pUrl) { downloadUrl = pUrl }
+          }
+        } catch (e) {
+          console.error(`[Metafields] product fetch error for variant ${item.shopifyVariantId}:`, e)
+        }
+      }
     }
+
+    console.log(`[DownloadURL] ${item.name} → ${downloadUrl}`)
+    variantToUrl.set(item.shopifyVariantId, downloadUrl)
   }
 
   const downloadLinksHtml = items
