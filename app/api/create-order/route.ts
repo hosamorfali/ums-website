@@ -88,15 +88,13 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const orderId        = orderData.order?.id as number
-  const orderStatusUrl = (orderData.order?.order_status_url as string) ?? ''
+  const orderId = orderData.order?.id as number
   console.log('[Order] created:', orderId, '| financial_status:', orderData.order?.financial_status)
 
-  // ── 2. Poll fulfillments until DD auto-fulfills, then send FO requests ────
-  // DD auto-fulfills immediately on this store. Poll fulfillments first on
-  // every iteration; send fulfillment_requests once on the first empty poll
+  // ── 2. Poll fulfillments — DD auto-fulfills on this store ─────────────────
+  // Check fulfillments first on every iteration so DD's auto-fulfillment is
+  // caught immediately. Send fulfillment_requests once on the first empty poll
   // as a fallback for any item DD does not auto-fulfill.
-  let createdFulfillments: { id: number }[] = []
   let foRequestsSent = false
 
   for (let attempt = 1; attempt <= 15; attempt++) {
@@ -104,11 +102,11 @@ export async function POST(req: NextRequest) {
 
     const fulfRes  = await fetch(`${base}/orders/${orderId}/fulfillments.json`, { headers })
     const fulfData = await fulfRes.json()
-    createdFulfillments = fulfData.fulfillments ?? []
+    const fulfillments: unknown[] = fulfData.fulfillments ?? []
 
-    console.log(`[Poll] attempt ${attempt}/15: ${createdFulfillments.length} fulfillment(s) for ${items.length} item(s)`)
+    console.log(`[Poll] attempt ${attempt}/15: ${fulfillments.length} fulfillment(s) for ${items.length} item(s)`)
 
-    if (createdFulfillments.length >= items.length) break
+    if (fulfillments.length >= items.length) break
 
     if (!foRequestsSent) {
       foRequestsSent = true
@@ -142,46 +140,9 @@ export async function POST(req: NextRequest) {
       }
 
       if (requestable.length === 0) {
-        console.log('[FulfillmentRequest] no open FOs — DD has auto-fulfilled, continuing to poll')
+        console.log('[FulfillmentRequest] no open FOs — DD has auto-fulfilled')
       }
     }
-  }
-
-  // ── 3. Build per-item download HTML ──────────────────────────────────────
-  // The Digital Downloads app does not expose its /a/downloads/ token via
-  // any Admin API field. order_status_url is the authenticated order page
-  // where the customer can access and download all their purchased files.
-  const downloadLinksHtml = items
-    .map((item, idx) => {
-      const isLast = idx === items.length - 1
-      return (
-        `<div style="margin-bottom:16px;padding-bottom:16px;${isLast ? '' : 'border-bottom:1px solid #f0f0f0;'}">` +
-        `<div style="font-size:11px;letter-spacing:0.1em;color:#999999;margin-bottom:4px;">FRAMEWORK NAME</div>` +
-        `<div style="font-size:14px;font-weight:500;color:#1a1a1a;margin-bottom:8px;">${item.name}</div>` +
-        `<div style="font-size:11px;letter-spacing:0.1em;color:#999999;margin-bottom:4px;">DOWNLOAD LINK</div>` +
-        `<a href="${orderStatusUrl}" style="font-size:13px;color:#1a1a1a;text-decoration:underline;">Access your downloads →</a>` +
-        `</div>`
-      )
-    })
-    .join('')
-
-  // ── 4. Send branded purchase email via EmailJS ────────────────────────────
-  try {
-    const ejRes  = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        service_id:      process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID,
-        template_id:     process.env.NEXT_PUBLIC_EMAILJS_PURCHASE_TEMPLATE_ID,
-        user_id:         process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY,
-        accessToken:     process.env.EMAILJS_PRIVATE_KEY,
-        template_params: { to_email: email, customer_email: email, download_links: downloadLinksHtml },
-      }),
-    })
-    const ejBody = await ejRes.text()
-    console.log('[EmailJS] purchase email → HTTP', ejRes.status, '| body:', ejBody)
-  } catch (err) {
-    console.error('[EmailJS] fetch threw (non-blocking):', err)
   }
 
   return NextResponse.json({ orderId })
