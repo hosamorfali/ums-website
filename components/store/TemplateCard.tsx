@@ -42,12 +42,15 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   const { addItem, items: cartItems, openDrawer } = useCart()
   const inCart = cartItems.some(i => i.template.id === template.id)
 
-  const constraintsRef  = useRef<HTMLDivElement>(null)
-  const dragControls    = useDragControls()
-  const touchStartX     = useRef(0)
-  const touchStartY     = useRef(0)
-  const lbTouchStartX   = useRef(0)
-  const lbTouchStartY   = useRef(0)
+  const constraintsRef       = useRef<HTMLDivElement>(null)
+  const dragControls         = useDragControls()
+  const touchStartX          = useRef(0)
+  const touchStartY          = useRef(0)
+  const touchStartCount      = useRef(0)
+  const lbTouchStartX        = useRef(0)
+  const lbTouchStartY        = useRef(0)
+  const lbTouchStartCount    = useRef(0)
+  const backdropTouchStart   = useRef<{ x: number; y: number } | null>(null)
 
   // Reset state when template changes
   const prevId = useRef(template.id)
@@ -114,11 +117,25 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
   // ── Outer: fixed full-screen centering wrapper (opacity transition via AnimatePresence)
   return (
     <>
-    {/* Mobile-only backdrop — tap outside to dismiss */}
+    {/* Mobile-only backdrop — single deliberate tap to dismiss; ignores pinch */}
     <div
       className="fixed inset-0 md:hidden"
       style={{ zIndex: 9998, background: 'rgba(0,0,0,0.45)' }}
-      onClick={onClose}
+      onTouchStart={e => {
+        if (e.touches.length === 1) {
+          backdropTouchStart.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }
+        } else {
+          backdropTouchStart.current = null
+        }
+      }}
+      onTouchEnd={e => {
+        const start = backdropTouchStart.current
+        if (!start) return
+        if (e.changedTouches.length !== 1) return
+        const dx = Math.abs(e.changedTouches[0].clientX - start.x)
+        const dy = Math.abs(e.changedTouches[0].clientY - start.y)
+        if (dx < 10 && dy < 10) onClose()
+      }}
     />
 
     <m.div
@@ -173,11 +190,15 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
         {/* ── Card visual ── */}
         <div
           onTouchStart={e => {
-            touchStartX.current = e.touches[0].clientX
-            touchStartY.current = e.touches[0].clientY
+            touchStartCount.current = e.touches.length
+            if (e.touches.length === 1) {
+              touchStartX.current = e.touches[0].clientX
+              touchStartY.current = e.touches[0].clientY
+            }
           }}
           onTouchEnd={e => {
             if (window.innerWidth >= 768) return
+            if (touchStartCount.current !== 1 || e.touches.length > 0) return
             const dx = e.changedTouches[0].clientX - touchStartX.current
             const dy = e.changedTouches[0].clientY - touchStartY.current
             if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 55) {
@@ -274,7 +295,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                   onPointerDown={e => e.stopPropagation()}
                   onClick={e => { e.stopPropagation(); openLightbox(imgIndex) }}
                   className="absolute inset-0 z-[1] group"
-                  style={{ cursor: 'zoom-in' }}
+                  style={{ cursor: 'zoom-in', touchAction: 'pan-y' }}
                 >
                   <Image
                     src={images[imgIndex]}
@@ -505,10 +526,14 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             transition={{ duration: 0.18 }}
             onClick={() => setLightboxOpen(false)}
             onTouchStart={e => {
-              lbTouchStartX.current = e.touches[0].clientX
-              lbTouchStartY.current = e.touches[0].clientY
+              lbTouchStartCount.current = e.touches.length
+              if (e.touches.length === 1) {
+                lbTouchStartX.current = e.touches[0].clientX
+                lbTouchStartY.current = e.touches[0].clientY
+              }
             }}
             onTouchEnd={e => {
+              if (lbTouchStartCount.current !== 1 || e.touches.length > 0) return
               const dx = e.changedTouches[0].clientX - lbTouchStartX.current
               const dy = e.changedTouches[0].clientY - lbTouchStartY.current
               if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 40) {
