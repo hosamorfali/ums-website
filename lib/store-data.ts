@@ -42,10 +42,10 @@ export const TEMPLATES: Template[] = [
     price: 250,
     isKit: false,
     images: [
-      '/images/Template Images/The Competitive Landscape Framework/Competitive_Landscape_Preview_1.PNG',
-      '/images/Template Images/The Competitive Landscape Framework/Competitive_Landscape_Preview_2.PNG',
-      '/images/Template Images/The Competitive Landscape Framework/Competitive_Landscape_Preview_3.PNG',
-      '/images/Template Images/The Competitive Landscape Framework/Competitive_Landscape_Preview_4.PNG',
+      '/images/Template Images/Strategy Frameworks/The Competitive Landscape Framework/Competitive_Landscape_Preview_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The Competitive Landscape Framework/Competitive_Landscape_Preview_2.PNG',
+      '/images/Template Images/Strategy Frameworks/The Competitive Landscape Framework/Competitive_Landscape_Preview_3.PNG',
+      '/images/Template Images/Strategy Frameworks/The Competitive Landscape Framework/Competitive_Landscape_Preview_4.PNG',
     ],
     builtFor: [
       'Entering or scanning a new market',
@@ -65,9 +65,9 @@ export const TEMPLATES: Template[] = [
     price: 200,
     isKit: false,
     images: [
-      '/images/Template Images/The SWOT Analysis Framework/SWOT_Preview_1.PNG',
-      '/images/Template Images/The SWOT Analysis Framework/SWOT_Preview_2.PNG',
-      '/images/Template Images/The SWOT Analysis Framework/SWOT_Preview_3.PNG',
+      '/images/Template Images/Strategy Frameworks/The SWOT Analysis Framework/SWOT_Preview_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The SWOT Analysis Framework/SWOT_Preview_2.PNG',
+      '/images/Template Images/Strategy Frameworks/The SWOT Analysis Framework/SWOT_Preview_3.PNG',
     ],
     builtFor: [
       'Starting a new strategy cycle',
@@ -87,9 +87,9 @@ export const TEMPLATES: Template[] = [
     price: 250,
     isKit: false,
     images: [
-      '/images/Template Images/The Strategy House Framework/Strategy_House_Preview_1.PNG',
-      '/images/Template Images/The Strategy House Framework/Strategy_House_Preview_2.PNG',
-      '/images/Template Images/The Strategy House Framework/Strategy_House_Preview_3.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategy House Framework/Strategy_House_Preview_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategy House Framework/Strategy_House_Preview_2.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategy House Framework/Strategy_House_Preview_3.PNG',
     ],
     builtFor: [
       'Building a unified strategic architecture',
@@ -131,9 +131,9 @@ export const TEMPLATES: Template[] = [
     price: 200,
     isKit: false,
     images: [
-      '/images/Template Images/The Initiative Card/Initiative_Card_Preview_1.PNG',
-      '/images/Template Images/The Initiative Card/Initiative_Card_Preview_2.PNG',
-      '/images/Template Images/The Initiative Card/Initiative_Card_Preview_3.PNG',
+      '/images/Template Images/Strategy Frameworks/The Initiative Card/Initiative_Card_Preview_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The Initiative Card/Initiative_Card_Preview_2.PNG',
+      '/images/Template Images/Strategy Frameworks/The Initiative Card/Initiative_Card_Preview_3.PNG',
     ],
     builtFor: [
       'Defining and detailing a strategic initiative',
@@ -153,9 +153,9 @@ export const TEMPLATES: Template[] = [
     price: 200,
     isKit: false,
     images: [
-      '/images/Template Images/The Initiative Prioritization Framework/Initiative_Priorities_Preview_1.PNG',
-      '/images/Template Images/The Initiative Prioritization Framework/Initiative_Priorities_Preview_2.PNG',
-      '/images/Template Images/The Initiative Prioritization Framework/Initiative_Priorities_Preview_3.PNG',
+      '/images/Template Images/Strategy Frameworks/The Initiative Prioritization Framework/Initiative_Priorities_Preview_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The Initiative Prioritization Framework/Initiative_Priorities_Preview_2.PNG',
+      '/images/Template Images/Strategy Frameworks/The Initiative Prioritization Framework/Initiative_Priorities_Preview_3.PNG',
     ],
     builtFor: [
       'Ranking initiatives before committing resources',
@@ -175,9 +175,9 @@ export const TEMPLATES: Template[] = [
     price: 200,
     isKit: false,
     images: [
-      '/images/Template Images/The KPIs & Success Metrics Framework/KPIs_Success_Metrics_Preview_1.PNG',
-      '/images/Template Images/The KPIs & Success Metrics Framework/KPIs_Success_Metrics_Preview_2.PNG',
-      '/images/Template Images/The KPIs & Success Metrics Framework/KPIs_Success_Metrics_Preview_3.PNG',
+      '/images/Template Images/Strategy Frameworks/The KPIs & Success Metrics Framework/KPIs_Success_Metrics_Preview_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The KPIs & Success Metrics Framework/KPIs_Success_Metrics_Preview_2.PNG',
+      '/images/Template Images/Strategy Frameworks/The KPIs & Success Metrics Framework/KPIs_Success_Metrics_Preview_3.PNG',
     ],
     builtFor: [
       'Building a KPI register for a strategic plan',
@@ -197,9 +197,9 @@ export const TEMPLATES: Template[] = [
     price: 250,
     isKit: false,
     images: [
-      '/images/Template Images/The Strategic Positioning Framework/Strategic_Positioning_Preview_1.PNG',
-      '/images/Template Images/The Strategic Positioning Framework/Strategic_Positioning_Preview_2.PNG',
-      '/images/Template Images/The Strategic Positioning Framework/Strategic_Positioning_Preview_3.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategic Positioning Framework/Strategic_Positioning_Preview_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategic Positioning Framework/Strategic_Positioning_Preview_2.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategic Positioning Framework/Strategic_Positioning_Preview_3.PNG',
     ],
     builtFor: [
       'Setting or refreshing strategic direction',
@@ -219,7 +219,7 @@ export const TEMPLATES: Template[] = [
     price: 1250,
     isKit: true,
     images: [
-      '/images/Template Images/The Strategic Direction Kit/Strategic_Direction_Kit_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategic Direction Kit/Strategic_Direction_Kit_1.PNG',
     ],
     builtFor: [
       'Running a full strategy cycle from positioning to execution',
