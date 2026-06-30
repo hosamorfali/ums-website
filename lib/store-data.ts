@@ -54,6 +54,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['swot-analysis'],
     shopifyVariantId: '45459176685747',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'swot-analysis',
@@ -75,6 +76,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['competitive-landscape'],
     shopifyVariantId: '45459175342259',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'strategy-house',
@@ -96,6 +98,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['strategic-roadmap'],
     shopifyVariantId: '45456480927923',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'strategic-roadmap',
@@ -117,6 +120,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['strategy-house'],
     shopifyVariantId: '45459178324147',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'initiative-card',
@@ -138,6 +142,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['initiative-prioritization'],
     shopifyVariantId: '45459161252019',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'initiative-prioritization',
@@ -159,6 +164,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['initiative-card'],
     shopifyVariantId: '45459446169779',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'kpis-success-metrics',
@@ -180,6 +186,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['strategy-house'],
     shopifyVariantId: '45459019858099',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'strategic-positioning',
@@ -201,6 +208,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['strategy-house'],
     shopifyVariantId: '45456503865523',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'strategic-direction-kit',
@@ -244,6 +252,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-business-model-canvas'],
     shopifyVariantId: '45562404208819',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-business-model-canvas',
@@ -266,6 +275,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-gtm-strategy'],
     shopifyVariantId: '45562404700339',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-value-proposition-canvas',
@@ -288,6 +298,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-target-audience-persona'],
     shopifyVariantId: '45562404929715',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-gtm-strategy',
@@ -310,6 +321,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-business-model-canvas'],
     shopifyVariantId: '45562405028019',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-target-audience-persona',
@@ -332,6 +344,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-value-proposition-canvas'],
     shopifyVariantId: '45562405355699',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-competitive-landscape',
@@ -354,6 +367,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-business-model-canvas'],
     shopifyVariantId: '45562405454003',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-strategy-house',
@@ -376,6 +390,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-business-model-canvas'],
     shopifyVariantId: '45562405552307',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-pricing-direction',
@@ -398,6 +413,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-revenue-model'],
     shopifyVariantId: '45562405585075',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-revenue-model',
@@ -420,6 +436,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-pricing-direction'],
     shopifyVariantId: '45562406371507',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-financial-projections',
@@ -442,6 +459,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-revenue-model'],
     shopifyVariantId: '45562406502579',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-investor-pitch',
@@ -464,6 +482,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-business-model-canvas'],
     shopifyVariantId: '45562406568115',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-90-days-launch',
@@ -486,6 +505,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-gtm-strategy'],
     shopifyVariantId: '45562406633651',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-kpis-metrics',
@@ -508,6 +528,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['startup-business-model-canvas'],
     shopifyVariantId: '45562406699187',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'startup-business-kit',
@@ -572,6 +593,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['project-status-update-timeline'],
     shopifyVariantId: '45609262514355',
+    fileExtension: 'Excel',
   },
   {
     id: 'budget-cost-tracker',
@@ -593,6 +615,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['project-status-update-timeline'],
     shopifyVariantId: '45609263759539',
+    fileExtension: 'Excel',
   },
   {
     id: 'minutes-of-meetings',
@@ -614,6 +637,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['project-plan-cps'],
     shopifyVariantId: '45609263825075',
+    fileExtension: 'Word',
   },
   {
     id: 'project-status-update-timeline',
@@ -636,6 +660,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['project-plan-cps'],
     shopifyVariantId: '45609263890611',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'kpi-tracker-dashboard',
@@ -657,6 +682,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['project-status-update-timeline'],
     shopifyVariantId: '45609263956147',
+    fileExtension: 'Excel',
   },
   {
     id: 'project-management-kit',

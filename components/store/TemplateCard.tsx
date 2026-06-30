@@ -598,7 +598,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
             {template.isKit ? (
               <p className="text-xs leading-relaxed text-ums-muted">{kitContent?.opening ?? template.tagline}</p>
             ) : (
-              <p className="text-xs leading-relaxed text-ums-muted line-clamp-2">{template.tagline}</p>
+              <p className="text-xs leading-relaxed text-ums-muted">{template.tagline}</p>
             )}
 
             {template.isKit && kitContent && (
