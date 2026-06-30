@@ -421,7 +421,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Revenue Model',
     category: 'startup',
     tagline: 'Define how money flows into the business before building the financial plan',
-    price: 300,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/Startup Businesses/The Revenue Model Framework/Revenue_Model_Framework_Preview_1.PNG',
@@ -490,7 +490,7 @@ export const TEMPLATES: Template[] = [
     shortName: '90 Days Launch Plan',
     category: 'startup',
     tagline: 'Turn launch priorities into a focused 90-day execution plan',
-    price: 300,
+    price: 200,
     isKit: false,
     images: [
       '/images/Template Images/Startup Businesses/The 90 Days Launch Plan/90_Days_Launch_Plan_Preview_1.PNG',
