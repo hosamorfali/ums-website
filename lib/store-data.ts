@@ -38,7 +38,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Competitive Landscape',
     category: 'strategy',
     tagline: 'Define where you stand, and where the opportunity lives',
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/The Competitive Landscape Framework/Competitive_Landscape_Preview_1.PNG',
@@ -81,7 +81,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Strategy House',
     category: 'strategy',
     tagline: 'Your entire strategic architecture, from purpose to priorities, on one page',
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/The Strategy House Framework/Strategy_House_Preview_1.PNG',
@@ -102,7 +102,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Strategic Roadmap',
     category: 'strategy',
     tagline: 'What gets done, in what order, and why the sequence matters',
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/The Strategic Roadmap/Strategic_Roadmap_Preview_1.PNG',
@@ -186,7 +186,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Strategic Positioning',
     category: 'strategy',
     tagline: 'Define where you play and how you win',
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/The Strategic Positioning Framework/Strategic_Positioning_Preview_1.PNG',
@@ -207,7 +207,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Strategic Direction Kit',
     category: 'strategy',
     tagline: 'Everything you need to build, present, and own a complete strategic direction',
-    price: 1000,
+    price: 1250,
     isKit: true,
     images: [
       '/images/Template Images/The Strategic Direction Kit/Strategic_Direction_Kit_1.PNG',
@@ -250,7 +250,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Business Model Canvas',
     category: 'startup',
     tagline: 'Map how the business creates, delivers, and captures value',
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/Startup Businesses/The Business Model Canvas/Business_Model_Canvas_Preview_1.PNG',
@@ -338,7 +338,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Competitive Landscape',
     category: 'startup',
     tagline: 'See where the business stands against competitors and alternatives',
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/Startup Businesses/The Competitive Landscape Framework/Competitive_Landscape_Preview_1.PNG',
@@ -360,7 +360,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Strategy House',
     category: 'startup',
     tagline: 'Connect purpose, priorities, and execution in one strategic view',
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/Startup Businesses/The Strategy House Framework/Strategy_House_Preview_1.PNG',
@@ -448,7 +448,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Investor Pitch',
     category: 'startup',
     tagline: 'Turn the business case into a clear investor-ready story',
-    price: 300,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/Startup Businesses/The Investor Pitch Framework/Investor_Pitch_Framework_Preview_1.PNG',
@@ -534,7 +534,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Project Scope of Work',
     category: 'project-management',
     tagline: "Define the project's purpose, deliverables, boundaries, assumptions, and success expectations before execution begins",
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/Project Management/The Project Scope of Work Framework/Project_Scope_of_Work_Preview_1.PNG',
@@ -556,7 +556,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Project Plan & CPS',
     category: 'project-management',
     tagline: 'Turn project objectives into a structured execution plan with clear phases, milestones, and responsibilities',
-    price: 300,
+    price: 350,
     isKit: false,
     images: [
       '/images/Template Images/Project Management/The Project Plan & CPS Sheet/Project_Plan_and_CPS_Preview_1.PNG',
@@ -619,7 +619,7 @@ export const TEMPLATES: Template[] = [
     shortName: 'Status Update & Timeline',
     category: 'project-management',
     tagline: 'Communicate project progress, timeline movement, risks, and next steps in a clear executive format',
-    price: 200,
+    price: 250,
     isKit: false,
     images: [
       '/images/Template Images/Project Management/The Project Status Update & Timeline Framework/Project_Status_Update_and_Timeline_Preview_1.PNG',
