@@ -18,6 +18,7 @@ export type Template = {
   builtFor: string[]
   pairsWith: string[]        // template IDs (for Pairs With section)
   shopifyVariantId: string   // fill in from Shopify admin
+  fileExtension?: 'Powerpoint' | 'Excel' | 'Word'
 }
 
 export const CATEGORIES: Category[] = [
@@ -549,6 +550,7 @@ export const TEMPLATES: Template[] = [
     ],
     pairsWith: ['project-plan-cps'],
     shopifyVariantId: '45609258025139',
+    fileExtension: 'Powerpoint',
   },
   {
     id: 'project-plan-cps',

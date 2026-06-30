@@ -569,9 +569,27 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
           {/* Content */}
           <div className="p-5 flex flex-col gap-4" style={{ cursor: 'default' }}>
             <div>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ums-gold mb-1.5">
-                {template.isKit ? 'Bundle Kit' : categoryLabel}
-              </p>
+              <div className="flex items-center justify-between mb-1.5">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-ums-gold">
+                  {template.isKit ? 'Bundle Kit' : categoryLabel}
+                </p>
+                {template.fileExtension && (
+                  <span style={{
+                    fontSize: 10,
+                    fontWeight: 500,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    color: '#AB9C7D',
+                    border: '0.5px solid #5D523C',
+                    borderRadius: 4,
+                    padding: '2px 7px',
+                    lineHeight: 1.6,
+                    flexShrink: 0,
+                  }}>
+                    {template.fileExtension}
+                  </span>
+                )}
+              </div>
               <h2 className="text-base font-bold text-white leading-snug">
                 {template.name}
               </h2>
