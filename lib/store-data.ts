@@ -109,9 +109,9 @@ export const TEMPLATES: Template[] = [
     price: 250,
     isKit: false,
     images: [
-      '/images/Template Images/The Strategic Roadmap/Strategic_Roadmap_Preview_1.PNG',
-      '/images/Template Images/The Strategic Roadmap/Strategic_Roadmap_Preview_2.PNG',
-      '/images/Template Images/The Strategic Roadmap/Strategic_Roadmap_Preview_3.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategic Roadmap/Strategic_Roadmap_Preview_1.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategic Roadmap/Strategic_Roadmap_Preview_2.PNG',
+      '/images/Template Images/Strategy Frameworks/The Strategic Roadmap/Strategic_Roadmap_Preview_3.PNG',
     ],
     builtFor: [
       'Translating strategy into a phased execution plan',
