@@ -673,10 +673,10 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
 
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ums-gold mb-2">What You Receive</p>
-                  <ul className="flex flex-col gap-1">
+                  <ul className="flex flex-col gap-3">
                     {getReceiveBullets(template.fileExtension).map(item => (
                       <li key={item} className="text-xs text-ums-muted flex items-center gap-1.5">
-                        <span className="text-ums-gold">·</span>{item}
+                        <span className="text-ums-gold">✓</span>{item}
                       </li>
                     ))}
                   </ul>
