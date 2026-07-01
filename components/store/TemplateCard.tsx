@@ -15,6 +15,17 @@ interface Props {
   onNext?: () => void
 }
 
+function getReceiveBullets(ext?: 'Powerpoint' | 'Excel' | 'Word'): string[] {
+  const app = ext === 'Excel' ? 'Microsoft Excel' : ext === 'Word' ? 'Microsoft Word' : 'Microsoft PowerPoint'
+  return [
+    'A framework overview explaining what the template is, when to use it, and the key benefits it delivers',
+    'A filled example with a fully worked case study so you can see every section applied before building your own',
+    'A ready-to-use blank template that is clean, structured, and copy-paste ready for your own context',
+    'Structured, formatted, and labelled sections so you open the file and start filling immediately',
+    `Editable in ${app} and fully customizable to match your project, team, and reporting format`,
+  ]
+}
+
 const NAV_BTN: React.CSSProperties = {
   position:   'absolute',
   top:        '50%',
@@ -663,7 +674,7 @@ export function TemplateCard({ template, onClose, onPairsWithClick, onPrev, onNe
                 <div>
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-ums-gold mb-2">What You Receive</p>
                   <ul className="flex flex-col gap-1">
-                    {['The empty template', 'A filled example', 'A structured presentation'].map(item => (
+                    {getReceiveBullets(template.fileExtension).map(item => (
                       <li key={item} className="text-xs text-ums-muted flex items-center gap-1.5">
                         <span className="text-ums-gold">·</span>{item}
                       </li>
