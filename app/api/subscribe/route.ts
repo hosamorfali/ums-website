@@ -1,83 +1,61 @@
 import { NextRequest, NextResponse } from 'next/server'
 
 export async function POST(req: NextRequest) {
-  const { email, tag } = await req.json()
+  const { email } = await req.json()
 
   if (!email || typeof email !== 'string') {
     return NextResponse.json({ error: 'Email required' }, { status: 400 })
   }
 
   const domain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN
-  const token  = process.env.SHOPIFY_ADMIN_API_TOKEN
+  const token  = process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_TOKEN
 
   if (!domain || !token) {
     return NextResponse.json({ error: 'Shopify not configured' }, { status: 500 })
   }
 
-  const base    = `https://${domain}/admin/api/2024-07`
-  const headers = {
-    'Content-Type':           'application/json',
-    'X-Shopify-Access-Token': token,
-  }
-
-  // Try to create the customer first
-  const createRes = await fetch(`${base}/customers.json`, {
+  const res = await fetch(`https://${domain}/api/2024-07/graphql.json`, {
     method: 'POST',
-    headers,
+    headers: {
+      'Content-Type':                      'application/json',
+      'X-Shopify-Storefront-Access-Token': token,
+    },
     body: JSON.stringify({
-      customer: {
-        email,
-        accepts_marketing: true,
-        tags: tag ?? 'newsletter-subscriber',
+      query: `mutation customerCreate($input: CustomerCreateInput!) {
+        customerCreate(input: $input) {
+          customer { id }
+          customerUserErrors { field message }
+        }
+      }`,
+      variables: {
+        input: {
+          email,
+          password:         crypto.randomUUID(),
+          acceptsMarketing: true,
+        },
       },
     }),
   })
 
-  if (createRes.ok) {
-    return NextResponse.json({ ok: true })
+  if (!res.ok) {
+    console.error('[Subscribe] Storefront API HTTP error:', res.status)
+    return NextResponse.json({ error: 'Shopify error' }, { status: 500 })
   }
 
-  const createData = await createRes.json()
+  const body   = await res.json()
+  const errors: { field: string; message: string }[] =
+    body.data?.customerCreate?.customerUserErrors ?? []
 
-  // Email already exists — find the customer and update their marketing consent + tag
-  if (createData.errors?.email) {
-    const searchRes  = await fetch(
-      `${base}/customers/search.json?query=email:${encodeURIComponent(email)}&fields=id,tags`,
-      { headers },
-    )
-    const searchData = await searchRes.json()
-    const customer   = searchData.customers?.[0]
+  // "Email has already been taken" = already subscribed — treat as success
+  const fatal = errors.filter(e =>
+    !e.message.toLowerCase().includes('taken') &&
+    !e.message.toLowerCase().includes('already'),
+  )
 
-    if (!customer) {
-      console.error('[Subscribe] customer not found after email conflict')
-      return NextResponse.json({ error: 'Could not find subscriber' }, { status: 500 })
-    }
-
-    const existingTags = customer.tags ? customer.tags.split(', ').filter(Boolean) : []
-    const tagToAdd     = tag ?? 'newsletter-subscriber'
-    const mergedTags   = Array.from(new Set([...existingTags, tagToAdd])).join(', ')
-
-    const updateRes = await fetch(`${base}/customers/${customer.id}.json`, {
-      method: 'PUT',
-      headers,
-      body: JSON.stringify({
-        customer: {
-          id:                customer.id,
-          accepts_marketing: true,
-          tags:              mergedTags,
-        },
-      }),
-    })
-
-    if (!updateRes.ok) {
-      const updateData = await updateRes.json()
-      console.error('[Subscribe] update failed:', JSON.stringify(updateData))
-      return NextResponse.json({ error: 'Update failed' }, { status: 500 })
-    }
-
-    return NextResponse.json({ ok: true })
+  if (fatal.length > 0) {
+    console.error('[Subscribe] customerUserErrors:', fatal)
+    return NextResponse.json({ error: fatal[0].message }, { status: 422 })
   }
 
-  console.error('[Subscribe] unexpected error:', JSON.stringify(createData))
-  return NextResponse.json({ error: 'Failed to subscribe' }, { status: 500 })
+  return NextResponse.json({ ok: true })
 }
