@@ -53,15 +53,14 @@ export async function addToCart(cartId: string, variantId: string, quantity = 1)
 /* ── Email subscriber (navbar-subscriber / website-subscriber) ── */
 
 export async function subscribeEmail(email: string, tag: string) {
-  return shopifyFetch<{
-    customerCreate: { customer: { id: string } | null; customerUserErrors: { message: string }[] }
-  }>(
-    `mutation customerCreate($input: CustomerCreateInput!) {
-      customerCreate(input: $input) {
-        customer { id }
-        customerUserErrors { message }
-      }
-    }`,
-    { input: { email, tags: [tag], acceptsMarketing: true } },
-  )
+  const res = await fetch('/api/subscribe', {
+    method:  'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body:    JSON.stringify({ email, tag }),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error((data as { error?: string }).error ?? 'Subscribe failed')
+  }
+  return res.json()
 }
