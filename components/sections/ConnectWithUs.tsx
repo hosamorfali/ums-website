@@ -1,9 +1,8 @@
 'use client'
 
 import { m, type Variants } from 'framer-motion'
-import { Mail, Send, ArrowRight } from 'lucide-react'
+import { Mail, Send } from 'lucide-react'
 import { useState, type FormEvent } from 'react'
-import { subscribeEmail } from '@/lib/shopify'
 import { sendContactEmail } from '@/lib/emailjs'
 
 const sectionVariants: Variants = {
@@ -24,10 +23,6 @@ export default function ConnectWithUsSection() {
   const [form, setForm] = useState({ name: '', phone: '', email: '', message: '' })
   const [formStatus, setFormStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle')
 
-  /* Subscribe state */
-  const [subEmail, setSubEmail] = useState('')
-  const [subStatus, setSubStatus] = useState<'idle' | 'sending' | 'done' | 'error'>('idle')
-
   const handleFormSubmit = async (e: FormEvent) => {
     e.preventDefault()
     setFormStatus('sending')
@@ -37,19 +32,6 @@ export default function ConnectWithUsSection() {
       setForm({ name: '', phone: '', email: '', message: '' })
     } catch {
       setFormStatus('error')
-    }
-  }
-
-  const handleSubscribe = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!subEmail.trim()) return
-    setSubStatus('sending')
-    try {
-      await subscribeEmail(subEmail.trim(), 'website-subscriber')
-      setSubStatus('done')
-      setSubEmail('')
-    } catch {
-      setSubStatus('error')
     }
   }
 
@@ -140,39 +122,6 @@ export default function ConnectWithUsSection() {
               </div>
             </div>
 
-            {/* Divider */}
-            <div className="h-px bg-ums-border" />
-
-            {/* Email subscribe */}
-            <div>
-              <p className="mb-1 text-sm font-semibold text-foreground">Weekly Insights</p>
-              <p className="mb-4 text-xs text-ums-muted">
-                Strategy frameworks, consulting perspectives, and new template releases — straight to your inbox.
-              </p>
-              <form onSubmit={handleSubscribe} className="flex gap-3">
-                <input
-                  type="email"
-                  value={subEmail}
-                  onChange={e => setSubEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  required
-                  disabled={subStatus === 'sending' || subStatus === 'done'}
-                  className="flex-1 rounded-md border border-ums-border bg-[#201F1D] px-4 py-2.5 text-sm text-foreground placeholder:text-ums-muted/50 focus:outline-none focus:ring-1 focus:ring-ums-gold disabled:opacity-50"
-                />
-                <button
-                  type="submit"
-                  disabled={subStatus === 'sending' || subStatus === 'done'}
-                  className="inline-flex items-center gap-2 rounded-md px-4 py-2.5 text-sm font-semibold transition-opacity hover:opacity-90 disabled:opacity-50"
-                  style={{ backgroundColor: '#AB9C7D', color: '#1A1918' }}
-                >
-                  <ArrowRight size={14} aria-hidden="true" />
-                  {subStatus === 'sending' ? 'Subscribing…' : subStatus === 'done' ? 'Subscribed!' : 'Subscribe'}
-                </button>
-              </form>
-              {subStatus === 'error' && (
-                <p className="mt-2 text-xs text-red-400">Something went wrong — please try again.</p>
-              )}
-            </div>
           </m.div>
 
           {/* Right — contact form */}
